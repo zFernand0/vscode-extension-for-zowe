@@ -43,6 +43,7 @@ import * as nls from "vscode-nls";
 import { TsoCommandHandler } from "./command/TsoCommandHandler";
 import { cleanTempDir, moveTempFolder, hideTempFolder } from "./utils/TempFolder";
 import { standardizeSettings } from "./utils/SettingsConfig";
+import { UIViews } from "./shared/ui-views";
 
 // Set up localization
 nls.config({
@@ -136,6 +137,41 @@ export async function activate(context: vscode.ExtensionContext): Promise<ZoweEx
                 }
             }
             await activate(context);
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand("zowe.promptCredentials", async (node: IZoweTreeNode) => {
+            let profileName: string;
+            if (node == null) {
+                // prompt for profile
+                profileName = await UIViews.inputBox({
+                    placeHolder: localize(
+                        "createNewConnection.option.prompt.profileName.placeholder",
+                        "Connection Name"
+                    ),
+                    prompt: localize(
+                        "createNewConnection.option.prompt.profileName",
+                        "Enter a name for the connection."
+                    ),
+                    ignoreFocusOut: true,
+                });
+
+                if (profileName === undefined) {
+                    vscode.window.showInformationMessage(
+                        localize("createNewConnection.undefined.passWord", "Operation Cancelled")
+                    );
+                    return;
+                }
+                profileName = profileName.trim();
+            } else {
+                profileName = node.getProfile().name;
+            }
+
+            await Profiles.getInstance().promptCredentials(profileName, true);
+            await refreshActions.refreshAll(datasetProvider);
+            await refreshActions.refreshAll(ussFileProvider);
+            await refreshActions.refreshAll(jobsProvider);
         })
     );
 
