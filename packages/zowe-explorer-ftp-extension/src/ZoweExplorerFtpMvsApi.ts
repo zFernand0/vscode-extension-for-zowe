@@ -17,11 +17,11 @@ import * as imperative from "@zowe/imperative";
 import * as path from "path";
 
 import { CreateDataSetTypeEnum, IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
-
 import { MessageSeverityEnum, ZoweExplorerApi, ZoweVsCodeExtension } from "@zowe/zowe-explorer-api";
 import { DataSetUtils, TRANSFER_TYPE_ASCII, TRANSFER_TYPE_BINARY } from "@zowe/zos-ftp-for-zowe-cli";
 import { AbstractFtpApi } from "./ZoweExplorerAbstractFtpApi";
-import { ZoweLogger } from "./extension";
+import { ZoweLogger } from "./ZoweExplorerFtpUtils";
+
 // The Zowe FTP CLI plugin is written and uses mostly JavaScript, so relax the rules here.
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */

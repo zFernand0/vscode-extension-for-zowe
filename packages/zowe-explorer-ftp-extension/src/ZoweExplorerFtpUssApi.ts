@@ -15,13 +15,13 @@ import * as crypto from "crypto";
 import * as tmp from "tmp";
 import * as imperative from "@zowe/imperative";
 import * as zowe from "@zowe/cli";
-import { IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
 
+import { IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
 import { MessageSeverityEnum, ZoweExplorerApi, ZoweVsCodeExtension } from "@zowe/zowe-explorer-api";
 import { CoreUtils, UssUtils, TRANSFER_TYPE_ASCII, TRANSFER_TYPE_BINARY } from "@zowe/zos-ftp-for-zowe-cli";
 import { Buffer } from "buffer";
 import { AbstractFtpApi } from "./ZoweExplorerAbstractFtpApi";
-import { ZoweLogger } from "./extension";
+import { ZoweLogger } from "./ZoweExplorerFtpUtils";
 
 // The Zowe FTP CLI plugin is written and uses mostly JavaScript, so relax the rules here.
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */

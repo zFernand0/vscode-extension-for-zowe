@@ -13,7 +13,7 @@
 import * as imperative from "@zowe/imperative";
 import { FTPConfig, IZosFTPProfile } from "@zowe/zos-ftp-for-zowe-cli";
 import { MessageSeverityEnum, ZoweExplorerApi, ZoweVsCodeExtension } from "@zowe/zowe-explorer-api";
-import { ZoweLogger } from "./extension";
+import { ZoweLogger } from "./ZoweExplorerFtpUtils";
 
 export abstract class AbstractFtpApi implements ZoweExplorerApi.ICommon {
     private session?: imperative.Session;

@@ -30,6 +30,7 @@
     "eslint": "^8.11.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "madge": "^5.0.1",
     "mocha": "^4.0.0",
     "prettier": "2.2.1",
     "rimraf": "^3.0.2",
@@ -44,6 +45,7 @@
   },
   "scripts": {
     "clean": "yarn workspaces run clean",
+    "madge": "yarn workspaces run madge",
     "fresh-clone": "yarn workspaces run fresh-clone && rimraf node_modules",
     "prepare": "yarn build",
     "lint": "yarn workspaces run lint",

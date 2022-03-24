@@ -14,7 +14,8 @@
     "src"
   ],
   "devDependencies": {
-    "@types/semver": "^7.3.6"
+    "@types/semver": "^7.3.6",
+    "madge": "^5.0.1"
   },
   "dependencies": {
     "@zowe/cli": "7.0.0-next.202203211751",
@@ -25,6 +26,7 @@
     "test": "echo \"zowe-explorer-api: coming soon.\"",
     "lint": "concurrently -n \"_eslint_,prettier\" \"eslint . --ext .ts\" \"prettier --check .\"",
     "lintErrors": "echo \"zowe-explorer-api: coming soon.\"",
+    "madge": "madge --extensions ts --circular ./src",
     "pretty": "prettier --write .",
     "clean": "rimraf lib",
     "fresh-clone": "yarn clean && rimraf node_modules",

@@ -13,6 +13,7 @@
     "clean": "echo \"eslint-plugin: nothing to clean.\"",
     "fresh-clone": "yarn clean && rimraf node_modules",
     "test": "jest",
+    "madge": "madge --extensions js --circular ./lib",
     "build": "echo \"eslint-plugin: nothing to build.\"",
     "lint": "echo \"eslint-plugin: nothing to lint.\"",
     "lintErrors": "echo \"eslint-plugin: nothing to lint.\"",
@@ -24,7 +25,8 @@
   },
   "devDependencies": {
     "eslint": "^4.18.2",
-    "jest": "^26.0.1"
+    "jest": "^26.0.1",
+    "madge": "^5.0.1"
   },
   "engines": {
     "node": ">=0.10.0"

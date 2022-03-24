@@ -39,6 +39,7 @@
     "watch": "webpack --mode development --watch --info-verbosity verbose",
     "clean": "rimraf out",
     "fresh-clone": "yarn clean && rimraf node_modules",
+    "madge": "madge --extensions ts --circular ./src",
     "vscode:prepublish": "yarn license && yarn lint && webpack --mode production",
     "license": "node ../../scripts/license.js",
     "package": "vsce package --allow-star-activation --yarn && node ../../scripts/mv-pack.js zowe-explorer-ftp-extension vsix"
@@ -54,6 +55,7 @@
   "devDependencies": {
     "@types/tmp": "0.2.0",
     "concurrently": "^5.2.0",
+    "madge": "^5.0.1",
     "webpack": "^5.65.0",
     "webpack-cli": "^4.9.1"
   },
