@@ -12,7 +12,6 @@
 import {
     IProfileLoaded,
     Logger,
-    ISession,
     ICommandArguments,
     Session,
     SessConstants,
@@ -26,6 +25,7 @@ import {
     IConfig,
     ICommandProfileTypeConfiguration,
 } from "@zowe/imperative";
+import * as PromiseQueue from "promise-queue";
 import * as vscode from "vscode";
 import * as zowe from "@zowe/cli";
 import * as path from "path";
@@ -81,6 +81,20 @@ export class Profiles extends ProfilesCache {
 
     public static getInstance(): Profiles {
         return Profiles.loader;
+    }
+
+    /**
+     * Sequentially reload the internal profiles cache to satisfy all the newly added profile types
+     * @param refreshProfilesQueue Queue to add the promise to refresh
+     */
+     public static async sequentialReload(refreshProfilesQueue: PromiseQueue) {
+        // sequentially reload the internal profiles cache to satisfy all the newly added profile types
+        await refreshProfilesQueue.add(
+            async (): Promise<void> => {
+                // eslint-disable-next-line no-return-await
+                await Profiles.getInstance().refresh(ZoweExplorerApiRegister.getInstance());
+            }
+        );
     }
 
     private static loader: Profiles;

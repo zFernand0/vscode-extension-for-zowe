@@ -15,13 +15,13 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import * as moment from "moment";
+
 import { Session, IProfileLoaded } from "@zowe/imperative";
 import { IZoweUSSTreeNode, ZoweTreeNode, IZoweTree, ValidProfileEnum } from "@zowe/zowe-explorer-api";
 import { Profiles } from "../Profiles";
 import { ZoweExplorerApiRegister } from "../ZoweExplorerApiRegister";
 import { errorHandling, syncSessionNode } from "../utils/ProfilesUtils";
 import { getIconByNode } from "../generators/icons/index";
-import { injectAdditionalDataToTooltip } from "../uss/utils";
 import * as contextually from "../shared/context";
 import { closeOpenedTextFile } from "../utils/workspace";
 import * as nls from "vscode-nls";
@@ -112,6 +112,43 @@ export class ZoweUSSNode extends ZoweTreeNode implements IZoweUSSTreeNode {
         if (icon) {
             this.iconPath = icon.path;
         }
+    }
+
+    /**
+     * Injects extra data to tooltip based on node status and other conditions
+     * @param node
+     * @param tooltip
+     * @returns {string}
+     * @deprecated Please use this.injectAdditionalDataToTooltip(tooltip)
+     */
+    public static injectAdditionalDataToTooltip(node: ZoweUSSNode, tooltip: string) {
+        if (node.downloaded && node.downloadedTime) {
+            return ZoweUSSNode._injectAdditionalDataToTooltip(tooltip, node.downloadedTime);;
+        }
+        return tooltip;
+    }
+
+    /**
+     * Injects extra data to tooltip based on node status and other conditions
+     * @param tooltip
+     * @returns {string}
+     */
+    public injectAdditionalDataToTooltip(tooltip: string) {
+        if (this.downloaded && this.downloadedTime) {
+            return ZoweUSSNode._injectAdditionalDataToTooltip(tooltip, this.downloadedTime);
+        }
+        return tooltip;
+    }
+
+    /**
+     * Helper tooltip injection function
+     * @param tooltip Tooltip which to append formatted time
+     * @param downloadedTime Time to format
+     * @returns Tooltip text with downloaded time formatted
+     */
+    private static _injectAdditionalDataToTooltip(tooltip, downloadedTime) {
+        // TODO: Add time formatter to localization so we will use not just US variant
+        return `${tooltip} (Downloaded: ${moment(downloadedTime).format("HH:mm MM/DD/YY")})`;
     }
 
     /**
@@ -314,7 +351,7 @@ export class ZoweUSSNode extends ZoweTreeNode implements IZoweUSSTreeNode {
         this.fullPath = newFullPath;
         this.shortLabel = newFullPath.split("/").pop();
         this.label = this.shortLabel;
-        this.tooltip = injectAdditionalDataToTooltip(this, newFullPath);
+        this.tooltip = this.injectAdditionalDataToTooltip(newFullPath);
         // Update the full path of any children already loaded locally
         if (this.children.length > 0) {
             this.children.forEach((child) => {
@@ -441,7 +478,7 @@ export class ZoweUSSNode extends ZoweTreeNode implements IZoweUSSTreeNode {
 
         if (value) {
             this.downloadedTime = moment().toISOString();
-            this.tooltip = injectAdditionalDataToTooltip(this, this.fullPath);
+            this.tooltip = this.injectAdditionalDataToTooltip(this.fullPath);
         }
 
         const icon = getIconByNode(this);

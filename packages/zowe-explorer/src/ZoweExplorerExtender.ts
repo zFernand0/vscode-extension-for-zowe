@@ -14,7 +14,6 @@ import * as imperative from "@zowe/imperative";
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
-import * as zowe from "@zowe/cli";
 import * as globals from "./globals";
 import {
     ZoweExplorerApi,
@@ -27,9 +26,8 @@ import {
     ProfilesCache,
 } from "@zowe/zowe-explorer-api";
 import { Profiles } from "./Profiles";
-import { ZoweExplorerApiRegister } from "./ZoweExplorerApiRegister";
 import * as nls from "vscode-nls";
-import { getProfileInfo, getZoweDir, getProfile } from "./utils/ProfilesUtils";
+import { getProfileInfo, getProfile } from "./utils/ProfilesUtils";
 
 // Set up localization
 nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
@@ -117,12 +115,9 @@ export class ZoweExplorerExtender implements ZoweExplorerApi.IApiExplorerExtende
         profileTypeConfigurations.forEach((item) => {
             globals.EXTENDER_CONFIG.push(item);
         });
+
         // sequentially reload the internal profiles cache to satisfy all the newly added profile types
-        await ZoweExplorerExtender.refreshProfilesQueue.add(
-            async (): Promise<void> => {
-                await Profiles.getInstance().refresh(ZoweExplorerApiRegister.getInstance());
-            }
-        );
+        await Profiles.sequentialReload(ZoweExplorerExtender.refreshProfilesQueue);
     }
 
     /**
@@ -157,12 +152,8 @@ export class ZoweExplorerExtender implements ZoweExplorerApi.IApiExplorerExtende
      */
     public async reloadProfiles(profileType?: string): Promise<void> {
         // sequentially reload the internal profiles cache to satisfy all the newly added profile types
-        await ZoweExplorerExtender.refreshProfilesQueue.add(
-            async (): Promise<void> => {
-                // eslint-disable-next-line no-return-await
-                await Profiles.getInstance().refresh(ZoweExplorerApiRegister.getInstance());
-            }
-        );
+        await Profiles.sequentialReload(ZoweExplorerExtender.refreshProfilesQueue);
+
         // profileType is used to load a default extender profile if no other profiles are populating the trees
         this.datasetProvider?.addSession(undefined, profileType);
         this.ussFileProvider?.addSession(undefined, profileType);

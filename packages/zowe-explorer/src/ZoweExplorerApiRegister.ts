@@ -38,7 +38,7 @@ export class ZoweExplorerApiRegister implements ZoweExplorerApi.IApiRegisterClie
 
     /**
      * Static lookup of an API for USS for a given profile.
-     * @param {IProfileLoaded} a profile to be used with this instance of the API returned
+     * @param {IProfileLoaded} profile profile to be used with this instance of the API returned
      * @returns an instance of the API that uses the profile provided
      */
     public static getUssApi(profile: IProfileLoaded): ZoweExplorerApi.IUss {
@@ -47,7 +47,7 @@ export class ZoweExplorerApiRegister implements ZoweExplorerApi.IApiRegisterClie
 
     /**
      * Static lookup of an API for MVS for a given profile.
-     * @param {IProfileLoaded} a profile to be used with this instance of the API returned
+     * @param {IProfileLoaded} profile profile to be used with this instance of the API returned
      * @returns an instance of the API that uses the profile provided
      */
     public static getMvsApi(profile: IProfileLoaded): ZoweExplorerApi.IMvs {
@@ -56,7 +56,7 @@ export class ZoweExplorerApiRegister implements ZoweExplorerApi.IApiRegisterClie
 
     /**
      * Static lookup of an API for JES for a given profile.
-     * @param {IProfileLoaded} a profile to be used with this instance of the API returned
+     * @param {IProfileLoaded} profile profile to be used with this instance of the API returned
      * @returns an instance of the API that uses the profile provided
      */
     public static getJesApi(profile: IProfileLoaded): ZoweExplorerApi.IJes {
@@ -65,7 +65,7 @@ export class ZoweExplorerApiRegister implements ZoweExplorerApi.IApiRegisterClie
 
     /**
      * Static lookup of an API for Command for a given profile.
-     * @param {IProfileLoaded} a profile to be used with this instance of the API returned
+     * @param {IProfileLoaded} profile profile to be used with this instance of the API returned
      * @returns an instance of the API that uses the profile provided
      */
     public static getCommandApi(profile: IProfileLoaded): ZoweExplorerApi.ICommand {

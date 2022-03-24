@@ -11,15 +11,15 @@
 
 // tslint:disable-next-line: no-duplicate-imports
 import * as moment from "moment";
-import { ZoweUSSNode } from "../uss/ZoweUSSNode";
 
 /**
  * Injects extra data to tooltip based on node status and other conditions
  * @param node
  * @param tooltip
  * @returns {string}
+ * @deprecated Please use ZoweUSSNode.injectAdditionalDataToTooltip(...)
  */
-export function injectAdditionalDataToTooltip(node: ZoweUSSNode, tooltip: string) {
+export function injectAdditionalDataToTooltip(node: any, tooltip: string) {
     if (node.downloaded && node.downloadedTime) {
         // TODO: Add time formatter to localization so we will use not just US variant
         return `${tooltip} (Downloaded: ${moment(node.downloadedTime).format("HH:mm MM/DD/YY")})`;

@@ -23,7 +23,6 @@ import { Profiles } from "../Profiles";
 import { TextUtils, IProfileLoaded, Session } from "@zowe/imperative";
 import { getIconByNode } from "../generators/icons";
 import { ZoweDatasetNode } from "./ZoweDatasetNode";
-import { DatasetTree } from "./DatasetTree";
 import * as contextually from "../shared/context";
 import { setFileSaved } from "../utils/workspace";
 import { UIViews } from "../shared/ui-views";
@@ -204,7 +203,7 @@ export async function uploadFile(node: ZoweDatasetNode, doc: vscode.TextDocument
  *
  * @export
  * @param {IZoweDatasetTreeNode} node - The node selected for deletion
- * @param {DatasetTree} datasetProvider - the tree which contains the nodes
+ * @param {api.IZoweTree<api.IZoweDatasetTreeNode>} datasetProvider - the tree which contains the nodes
  */
 export async function deleteDatasetPrompt(
     datasetProvider: api.IZoweTree<api.IZoweDatasetTreeNode>,
@@ -385,7 +384,7 @@ export async function deleteDatasetPrompt(
  *
  * @export
  * @param {IZoweDatasetTreeNode} parent - The parent Node
- * @param {DatasetTree} datasetProvider - the tree which contains the nodes
+ * @param {api.IZoweTree<api.IZoweDatasetTreeNode>} datasetProvider - the tree which contains the nodes
  */
 export async function createMember(
     parent: api.IZoweDatasetTreeNode,
@@ -541,7 +540,7 @@ export function getDataSetTypeAndOptions(type: string) {
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  * @export
  * @param {IZoweDatasetTreeNode} node - Desired Zowe session
- * @param {DatasetTree} datasetProvider - the tree which contains the nodes
+ * @param {api.IZoweTree<api.IZoweDatasetTreeNode>} datasetProvider - the tree which contains the nodes
  */
 export async function createFile(
     node: api.IZoweDatasetTreeNode,
@@ -765,7 +764,7 @@ async function handleUserSelection(newDSProperties, dsType): Promise<string> {
  *
  * @export
  * @param {IZoweDatasetTreeNode} parent - The parent Node
- * @param {DatasetTree} datasetProvider - the tree which contains the nodes
+ * @param {api.IZoweTree<api.IZoweDatasetTreeNode>} datasetProvider - the tree which contains the nodes
  */
 export async function showDSAttributes(
     parent: api.IZoweDatasetTreeNode,
@@ -841,7 +840,7 @@ export async function showDSAttributes(
  * Submit the contents of the editor as JCL.
  *
  * @export
- * @param {DatasetTree} datasetProvider - our DatasetTree object
+ * @param {api.IZoweTree<api.IZoweDatasetTreeNode>} datasetProvider - our DatasetTree object
  */
 // This function does not appear to currently be made available in the UI
 export async function submitJcl(datasetProvider: api.IZoweTree<api.IZoweDatasetTreeNode>) {
@@ -1105,7 +1104,7 @@ export async function refreshPS(node: api.IZoweDatasetTreeNode) {
  * Refreshes the names of each member within a PDS
  *
  * @param {IZoweDatasetTreeNode} node - The node which represents the parent PDS of members
- * @param datasetProvider
+ * @param {api.IZoweTree<api.IZoweDatasetTreeNode>} datasetProvider
  */
 export async function refreshDataset(
     node: api.IZoweDatasetTreeNode,
@@ -1123,11 +1122,11 @@ export async function refreshDataset(
  * Prompts the user for a pattern, and populates the [TreeView]{@link vscode.TreeView} based on the pattern
  *
  * @param {IZoweDatasetTreeNode} node - The session node
- * @param {DatasetTree} datasetProvider - Current DatasetTree used to populate the TreeView
+ * @param {api.IZoweTree<api.IZoweDatasetTreeNode>} datasetProvider - Current DatasetTree used to populate the TreeView
  * @returns {Promise<void>}
  */
 // This function does not appear to be called by anything except unit and integration tests.
-export async function enterPattern(node: api.IZoweDatasetTreeNode, datasetProvider: DatasetTree) {
+export async function enterPattern(node: api.IZoweDatasetTreeNode, datasetProvider: api.IZoweTree<api.IZoweDatasetTreeNode>) {
     if (globals.LOG) {
         globals.LOG.debug(localize("enterPattern.log.debug.prompt", "Prompting the user for a data set pattern"));
     }
@@ -1241,7 +1240,7 @@ export async function hRecallDataSet(node: ZoweDatasetNode) {
  *
  * @export
  * @param {ZoweNode} node - The node to paste to
- * @param {DatasetTree} datasetProvider - the tree which contains the nodes
+ * @param {api.IZoweTree<api.IZoweDatasetTreeNode>} datasetProvider - the tree which contains the nodes
  */
 export async function pasteMember(
     node: api.IZoweDatasetTreeNode,
