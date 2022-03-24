@@ -183,7 +183,14 @@ export class ProfilesCache {
         return currentProfile;
     }
 
+    /**
+     * @deprecated Please use ProfilesCache.getLoadedProfConfig(...)
+     */
     public getLoadedProfConfig(profileName: string): imperative.IProfileLoaded {
+        return ProfilesCache.getLoadedProfConfig(profileName);
+    }
+
+    public static getLoadedProfConfig(profileName: string): imperative.IProfileLoaded {
         const configAllProfiles = ProfilesCache.getConfigInstance()
             .getAllProfiles()
             .filter((temp) => temp.profLoc.osLoc.length !== 0);
@@ -194,7 +201,7 @@ export class ProfilesCache {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             profile[arg.argName] = arg.secure ? ProfilesCache.getConfigInstance().loadSecureArg(arg) : arg.argValue;
         }
-        return this.getProfileLoaded(currentProfile.profName, currentProfile.profType, profile);
+        return ProfilesCache.getProfileLoaded(currentProfile.profName, currentProfile.profType, profile);
     }
 
     public getCliProfileManager(type: string): imperative.CliProfileManager {
@@ -251,7 +258,18 @@ export class ProfilesCache {
         return imperativeIsSecure;
     }
 
+    /**
+     * @deprecated Please use ProfilesCache.getProfileLoaded(...)
+     */
     public getProfileLoaded(
+        profileName: string,
+        profileType: string,
+        profile: imperative.IProfile
+    ): imperative.IProfileLoaded {
+        return ProfilesCache.getProfileLoaded(profileName, profileType, profile);
+    }
+
+    public static getProfileLoaded(
         profileName: string,
         profileType: string,
         profile: imperative.IProfile
@@ -260,11 +278,10 @@ export class ProfilesCache {
             message: "",
             name: profileName,
             type: profileType,
-            profile: profile,
+            profile,
             failNotFound: false,
         };
     }
-
     protected async deleteProfileOnDisk(ProfileInfo: imperative.IProfileLoaded): Promise<void> {
         await this.getCliProfileManager(ProfileInfo.type).delete({
             profile: ProfileInfo,
@@ -349,7 +366,7 @@ export class ProfilesCache {
                     // Step 2: Merge args for each profile
                     const profAttr = await this.getMergedAttrs(mProfileInfo, prof);
                     // Work-around. TODO: Discuss with imperative team
-                    const profileFix = this.getProfileLoaded(prof.profName, prof.profType, profAttr);
+                    const profileFix = ProfilesCache.getProfileLoaded(prof.profName, prof.profType, profAttr);
                     // set default for type
                     if (prof.isDefaultProfile) {
                         this.defaultProfileByType.set(type, profileFix);
