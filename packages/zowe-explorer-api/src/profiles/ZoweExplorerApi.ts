@@ -9,8 +9,20 @@
  *                                                                                 *
  */
 
-import * as zowe from "@zowe/cli";
 import { IProfileLoaded, Session, ICommandArguments, ICommandProfileTypeConfiguration } from "@zowe/imperative";
+import { IConsoleResponse } from "@zowe/zos-console-for-zowe-sdk";
+import {
+    CreateDataSetTypeEnum,
+    ICreateDataSetOptions,
+    IDataSet,
+    IDeleteDatasetOptions,
+    IDownloadOptions,
+    IListOptions,
+    IUploadOptions,
+    IZosFilesResponse,
+} from "@zowe/zos-files-for-zowe-sdk";
+import { IDownloadAllSpoolContentParms, IJob, IJobFile, IJobFeedback } from "@zowe/zos-jobs-for-zowe-sdk";
+import { IIssueResponse, IStartTsoParms } from "@zowe/zos-tso-for-zowe-sdk";
 
 import { ProfilesCache } from "./ProfilesCache";
 
@@ -100,7 +112,7 @@ export namespace ZoweExplorerApi {
          *     as well as the list of results in apiResponse.items with
          *     minimal properties name, mode.
          */
-        fileList(ussFilePath: string): Promise<zowe.IZosFilesResponse>;
+        fileList(ussFilePath: string): Promise<IZosFilesResponse>;
 
         /**
          * Check th USS chtag to see if a file requires conversion.
@@ -114,9 +126,9 @@ export namespace ZoweExplorerApi {
          * Retrieve the contents of a USS file.
          *
          * @param {string} ussFilePath
-         * @param {zowe.IDownloadOptions} options
+         * @param {IDownloadOptions} options
          */
-        getContents(ussFilePath: string, options: zowe.IDownloadOptions): Promise<zowe.IZosFilesResponse>;
+        getContents(ussFilePath: string, options: IDownloadOptions): Promise<IZosFilesResponse>;
 
         /**
          * Uploads the file at the given path. Use for Save.
@@ -130,7 +142,7 @@ export namespace ZoweExplorerApi {
          *      Optional encoding that can be used by an implementation to overwrite defaults
          * @param {string} [etag]
          * @param {boolean} [returnEtag]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
         putContents(
             inputFilePath: string,
@@ -139,21 +151,17 @@ export namespace ZoweExplorerApi {
             localEncoding?: string,
             etag?: string,
             returnEtag?: boolean
-        ): Promise<zowe.IZosFilesResponse>;
+        ): Promise<IZosFilesResponse>;
 
         /**
          * Uploads the file at the given path. Use for Save.
          *
          * @param {string} inputFilePath
          * @param {string} ussFilePath
-         * @param {zowe.IUploadOptions} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {IUploadOptions} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
-        putContent?(
-            inputFilePath: string,
-            ussFilePath: string,
-            options?: zowe.IUploadOptions
-        ): Promise<zowe.IZosFilesResponse>;
+        putContent?(inputFilePath: string, ussFilePath: string, options?: IUploadOptions): Promise<IZosFilesResponse>;
 
         /**
          * Uploads directory at the given path.
@@ -161,13 +169,13 @@ export namespace ZoweExplorerApi {
          * @param {string} inputDirectoryPath
          * @param {string} ussDirectoryPath
          * @param {IUploadOptions} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
         uploadDirectory(
             inputDirectoryPath: string,
             ussDirectoryPath: string,
-            options: zowe.IUploadOptions
-        ): Promise<zowe.IZosFilesResponse>;
+            options: IUploadOptions
+        ): Promise<IZosFilesResponse>;
 
         /**
          * Create a new directory or file in the specified path.
@@ -177,27 +185,27 @@ export namespace ZoweExplorerApi {
          *      Either "file" or "directory".
          * @param {string} [mode]
          *      An optional Unix string representation of the permissions.
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
-        create(ussPath: string, type: string, mode?: string): Promise<zowe.IZosFilesResponse>;
+        create(ussPath: string, type: string, mode?: string): Promise<IZosFilesResponse>;
 
         /**
          * Deletes the USS directory or file at the given path.
          *
          * @param {string} ussPath
          * @param {boolean} [recursive]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
-        delete(ussPath: string, recursive?: boolean): Promise<zowe.IZosFilesResponse>;
+        delete(ussPath: string, recursive?: boolean): Promise<IZosFilesResponse>;
 
         /**
          * Rename a file or directory.
          *
          * @param {string} currentUssPath
          * @param {string} newUssPath
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
-        rename(currentUssPath: string, newUssPath: string): Promise<zowe.IZosFilesResponse>;
+        rename(currentUssPath: string, newUssPath: string): Promise<IZosFilesResponse>;
     }
 
     /**
@@ -209,98 +217,94 @@ export namespace ZoweExplorerApi {
          * Get a list of data sets that match the filter pattern.
          *
          * @param {string} filter
-         * @param {zowe.IListOptions} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {IListOptions} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
-        dataSet(filter: string, options?: zowe.IListOptions): Promise<zowe.IZosFilesResponse>;
+        dataSet(filter: string, options?: IListOptions): Promise<IZosFilesResponse>;
 
         /**
          * Get a list of members for a partitioned data set.
          *
          * @param {string} dataSetName
-         * @param {zowe.IListOptions} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {IListOptions} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
-        allMembers(dataSetName: string, options?: zowe.IListOptions): Promise<zowe.IZosFilesResponse>;
+        allMembers(dataSetName: string, options?: IListOptions): Promise<IZosFilesResponse>;
 
         /**
          * Get the contents of a data set or member specified by name.
          *
          * @param {string} dataSetName
-         * @param {zowe.IDownloadOptions} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {IDownloadOptions} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
-        getContents(dataSetName: string, options?: zowe.IDownloadOptions): Promise<zowe.IZosFilesResponse>;
+        getContents(dataSetName: string, options?: IDownloadOptions): Promise<IZosFilesResponse>;
 
         /**
          * Upload the content of a file to a data set or member.
          *
          * @param {string} inputFilePath
          * @param {string} dataSetName
-         * @param {zowe.IUploadOptions} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {IUploadOptions} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
-        putContents(
-            inputFilePath: string,
-            dataSetName: string,
-            options?: zowe.IUploadOptions
-        ): Promise<zowe.IZosFilesResponse>;
+        putContents(inputFilePath: string, dataSetName: string, options?: IUploadOptions): Promise<IZosFilesResponse>;
 
         /**
          * Create a new data set with the specified options.
          *
-         * @param {zowe.CreateDataSetTypeEnum} dataSetType
+         * @param {CreateDataSetTypeEnum} dataSetType
          * @param {string} dataSetName
-         * @param {Partial<zowe.ICreateDataSetOptions>} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {Partial<ICreateDataSetOptions>} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
         createDataSet(
-            dataSetType: zowe.CreateDataSetTypeEnum,
+            dataSetType: CreateDataSetTypeEnum,
             dataSetName: string,
-            options?: Partial<zowe.ICreateDataSetOptions>
-        ): Promise<zowe.IZosFilesResponse>;
+            options?: Partial<ICreateDataSetOptions>
+        ): Promise<IZosFilesResponse>;
 
         /**
          * Creates an empty data set member with given name.
          *
          * @param {string} dataSetName
-         * @param {zowe.IUploadOptions} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {IUploadOptions} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
-        createDataSetMember(dataSetName: string, options?: zowe.IUploadOptions): Promise<zowe.IZosFilesResponse>;
+        createDataSetMember(dataSetName: string, options?: IUploadOptions): Promise<IZosFilesResponse>;
 
         /**
          * Allocates a copy of a data set with the specified options.
          *
-         * @param {zowe.CreateDataSetTypeEnum} dataSetType
+         * @param {CreateDataSetTypeEnum} dataSetType
          * @param {string} dataSetName
-         * @param {Partial<zowe.ICreateDataSetOptions>} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {Partial<ICreateDataSetOptions>} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
-        allocateLikeDataSet(dataSetName: string, likeDataSetName: string): Promise<zowe.IZosFilesResponse>;
+        allocateLikeDataSet(dataSetName: string, likeDataSetName: string): Promise<IZosFilesResponse>;
 
         /**
          * Copies a data set member.
          *
-         * @param {zowe.IDataSet} { dataSetName: fromDataSetName, memberName: fromMemberName }
-         * @param {zowe.IDataSet} { dataSetName: toDataSetName, memberName: toMemberName }
+         * @param {IDataSet} { dataSetName: fromDataSetName, memberName: fromMemberName }
+         * @param {IDataSet} { dataSetName: toDataSetName, memberName: toMemberName }
          * @param {{replace?: boolean}} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
         copyDataSetMember(
-            { dsn: fromDataSetName, member: fromMemberName }: zowe.IDataSet,
-            { dsn: toDataSetName, member: toMemberName }: zowe.IDataSet,
+            { dsn: fromDataSetName, member: fromMemberName }: IDataSet,
+            { dsn: toDataSetName, member: toMemberName }: IDataSet,
             options?: { replace?: boolean }
-        ): Promise<zowe.IZosFilesResponse>;
+        ): Promise<IZosFilesResponse>;
 
         /**
          * Renames a data set.
          *
          * @param {string} currentDataSetName
          * @param {string} newDataSetName
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
-        renameDataSet(currentDataSetName: string, newDataSetName: string): Promise<zowe.IZosFilesResponse>;
+        renameDataSet(currentDataSetName: string, newDataSetName: string): Promise<IZosFilesResponse>;
 
         /**
          * Renames a data set member.
@@ -308,38 +312,38 @@ export namespace ZoweExplorerApi {
          * @param {string} dataSetName
          * @param {string} currentMemberName
          * @param {string} newMemberName
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
         renameDataSetMember(
             dataSetName: string,
             currentMemberName: string,
             newMemberName: string
-        ): Promise<zowe.IZosFilesResponse>;
+        ): Promise<IZosFilesResponse>;
 
         /**
          * Migrates a data set.
          *
          * @param {string} dataSetName
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
-        hMigrateDataSet(dataSetName: string): Promise<zowe.IZosFilesResponse>;
+        hMigrateDataSet(dataSetName: string): Promise<IZosFilesResponse>;
 
         /**
          * Recalls a data set.
          *
          * @param {string} dataSetName
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @returns {Promise<IZosFilesResponse>}
          */
-        hRecallDataSet(dataSetName: string): Promise<zowe.IZosFilesResponse>;
+        hRecallDataSet(dataSetName: string): Promise<IZosFilesResponse>;
 
         /**
          * Deletes a data set or data set member.
          *
          * @param {string} dataSetName
-         * @param {zowe.IDeleteDatasetOptions} [options]
-         * @returns {Promise<zowe.IZosFilesResponse>}
+         * @param {IDeleteDatasetOptions} [options]
+         * @returns {Promise<IZosFilesResponse>}
          */
-        deleteDataSet(dataSetName: string, options?: zowe.IDeleteDatasetOptions): Promise<zowe.IZosFilesResponse>;
+        deleteDataSet(dataSetName: string, options?: IDeleteDatasetOptions): Promise<IZosFilesResponse>;
     }
 
     /**
@@ -352,35 +356,35 @@ export namespace ZoweExplorerApi {
          *
          * @param {string} owner
          * @param {string} prefix
-         * @returns {Promise<zowe.IJob[]>} an array if IJob
+         * @returns {Promise<IJob[]>} an array if IJob
          */
-        getJobsByOwnerAndPrefix(owner: string, prefix: string): Promise<zowe.IJob[]>;
+        getJobsByOwnerAndPrefix(owner: string, prefix: string): Promise<IJob[]>;
 
         /**
          * Returns meta-data for one specific job identified by id.
          *
          * @param {string} jobid
-         * @returns {Promise<zowe.IJob>}
+         * @returns {Promise<IJob>}
          */
-        getJob(jobid: string): Promise<zowe.IJob>;
+        getJob(jobid: string): Promise<IJob>;
 
         /**
          * Returns spool file meta-data for a job.
          *
          * @param {string} jobname
          * @param {string} jobid
-         * @returns {Promise<zowe.IJobFile[]>}
+         * @returns {Promise<IJobFile[]>}
          */
-        getSpoolFiles(jobname: string, jobid: string): Promise<zowe.IJobFile[]>;
+        getSpoolFiles(jobname: string, jobid: string): Promise<IJobFile[]>;
 
         /**
          * Retrieves spool file content as specified in the parms
          * to be store in a file.
          *
-         * @param {zowe.IDownloadAllSpoolContentParms} parms
+         * @param {IDownloadAllSpoolContentParms} parms
          * @returns {Promise<void>}
          */
-        downloadSpoolContent(parms: zowe.IDownloadAllSpoolContentParms): Promise<void>;
+        downloadSpoolContent(parms: IDownloadAllSpoolContentParms): Promise<void>;
 
         /**
          * Returns spool file content as a string.
@@ -395,10 +399,10 @@ export namespace ZoweExplorerApi {
         /**
          * Returns the JCL of a job as a string.
          *
-         * @param {zowe.IJob} job
+         * @param {IJob} job
          * @returns {Promise<string>}
          */
-        getJclForJob(job: zowe.IJob): Promise<string>;
+        getJclForJob(job: IJob): Promise<string>;
 
         /**
          * Submits a job with the JCL provided returning job meta-data.
@@ -406,18 +410,18 @@ export namespace ZoweExplorerApi {
          * @param {string} jcl string of JCL that you want to be submit
          * @param {string} [internalReaderRecfm] record format of the jcl you want to submit. "F" (fixed) or "V" (variable)
          * @param {string} [internalReaderLrecl] logical record length of the jcl you want to submit
-         * @returns {Promise<zowe.IJob>} IJob document with details about the submitted job
+         * @returns {Promise<IJob>} IJob document with details about the submitted job
          */
-        submitJcl(jcl: string, internalReaderRecfm?: string, internalReaderLrecl?: string): Promise<zowe.IJob>;
+        submitJcl(jcl: string, internalReaderRecfm?: string, internalReaderLrecl?: string): Promise<IJob>;
 
         /**
          * Submits a job that is stored in the data set name provided returning job meta-data.
          *
          * @param {string} jobDataSet
-         * @returns {Promise<zowe.IJob>}
+         * @returns {Promise<IJob>}
          * @memberof IJes
          */
-        submitJob(jobDataSet: string): Promise<zowe.IJob>;
+        submitJob(jobDataSet: string): Promise<IJob>;
 
         /**
          * Cancels and purges a job identified by name and id.
@@ -435,10 +439,10 @@ export namespace ZoweExplorerApi {
          *
          * @param {string} jobname
          * @param {string} jobid
-         * @returns {Promise<undefined | zowe.IJobFeedback>}
+         * @returns {Promise<undefined | IJobFeedback>}
          * @memberof IJes
          */
-        deleteJobWithInfo?(jobname: string, jobid: string): Promise<undefined | zowe.IJobFeedback>;
+        deleteJobWithInfo?(jobname: string, jobid: string): Promise<undefined | IJobFeedback>;
     }
     /**
      * API for providing a Command API handler to the extension.
@@ -451,29 +455,29 @@ export namespace ZoweExplorerApi {
          * @deprecated Use issueTsoCommandWithParms
          * @param {string} command
          * @param {string} acctNum
-         * @returns {zowe.IIssueResponse>}
+         * @returns {IIssueResponse>}
          * @memberof ICommand
          */
-        issueTsoCommand?(command: string, acctNum?: string): Promise<zowe.IIssueResponse>;
+        issueTsoCommand?(command: string, acctNum?: string): Promise<IIssueResponse>;
 
         /**
          * Issues a TSO Command and returns a TsoSend API response.
          *
          * @param {string} command
-         * @param {zowe.IStartTsoParms} parms
-         * @returns {zowe.IIssueResponse>}
+         * @param {IStartTsoParms} parms
+         * @returns {IIssueResponse>}
          * @memberof ICommand
          */
-        issueTsoCommandWithParms?(command: string, parms?: zowe.IStartTsoParms): Promise<zowe.IIssueResponse>;
+        issueTsoCommandWithParms?(command: string, parms?: IStartTsoParms): Promise<IIssueResponse>;
 
         /**
          * Issues a MVS Command and returns a Console Command API response.
          *
          * @param {string} command
-         * @returns {zowe.IConsoleResponse>}
+         * @returns {IConsoleResponse>}
          * @memberof ICommand
          */
-        issueMvsCommand?(command: string): Promise<zowe.IConsoleResponse>;
+        issueMvsCommand?(command: string): Promise<IConsoleResponse>;
     }
 
     /**
@@ -529,7 +533,7 @@ export namespace ZoweExplorerApi {
      *     'Zowe Explorer was augmented for MyApp support. Please, refresh your explorer views.');\
      *   } else {\
      *   window.showInformationMessage(\
-     *     'Zowe VS Extension was not found: either not installe or older version.');\
+     *     'Zowe VS Extension was not found: either not installed or older version.');\
      * }
      *
      * @export

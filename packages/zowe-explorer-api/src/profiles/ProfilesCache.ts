@@ -9,7 +9,7 @@
  *                                                                                 *
  */
 
-import * as imperative from "@zowe/imperative";
+import { IProfileLoaded, CliProfileManager, IProfAttrs, IProfile, Logger, ProfileInfo } from "@zowe/imperative";
 import { ZoweExplorerApi } from "./ZoweExplorerApi";
 
 import { getZoweDir as _getZoweDir } from "@zowe/core-for-zowe-sdk";
@@ -57,18 +57,18 @@ export function getZoweDir(): string {
 export class ProfilesCache {
     public profilesForValidation: IProfileValidation[] = [];
     public profilesValidationSetting: IValidationSetting[] = [];
-    public allProfiles: imperative.IProfileLoaded[] = [];
+    public allProfiles: IProfileLoaded[] = [];
     protected allTypes: string[];
     protected allExternalTypes = new Set<string>();
-    protected profilesByType = new Map<string, imperative.IProfileLoaded[]>();
-    protected defaultProfileByType = new Map<string, imperative.IProfileLoaded>();
-    protected profileManagerByType = new Map<string, imperative.CliProfileManager>();
-    public constructor(protected log: imperative.Logger, protected cwd?: string) {
+    protected profilesByType = new Map<string, IProfileLoaded[]>();
+    protected defaultProfileByType = new Map<string, IProfileLoaded>();
+    protected profileManagerByType = new Map<string, CliProfileManager>();
+    public constructor(protected log: Logger, protected cwd?: string) {
         this.cwd = cwd != null ? fs.realpathSync.native(cwd) : undefined;
     }
 
-    public async getProfileInfo(): Promise<imperative.ProfileInfo> {
-        const mProfileInfo = new imperative.ProfileInfo("zowe");
+    public async getProfileInfo(): Promise<ProfileInfo> {
+        const mProfileInfo = new ProfileInfo("zowe");
         await mProfileInfo.readProfilesFromDisk({ projectDir: this.cwd });
         return mProfileInfo;
     }
@@ -81,7 +81,7 @@ export class ProfilesCache {
      *
      * @returns {IProfileLoaded}
      */
-    public loadNamedProfile(name: string, type?: string): imperative.IProfileLoaded {
+    public loadNamedProfile(name: string, type?: string): IProfileLoaded {
         for (const profile of this.allProfiles) {
             if (profile.name === name && (type ? profile.type === type : true)) {
                 return profile;
@@ -97,7 +97,7 @@ export class ProfilesCache {
      *
      * @returns {IProfileLoaded}
      */
-    public getDefaultProfile(type = "zosmf"): imperative.IProfileLoaded {
+    public getDefaultProfile(type = "zosmf"): IProfileLoaded {
         return this.defaultProfileByType.get(type);
     }
 
@@ -109,7 +109,7 @@ export class ProfilesCache {
      *
      * @returns {IProfAttrs}
      */
-    public getDefaultConfigProfile(mProfileInfo: imperative.ProfileInfo, profileType: string): imperative.IProfAttrs {
+    public getDefaultConfigProfile(mProfileInfo: ProfileInfo, profileType: string): IProfAttrs {
         return mProfileInfo.getDefaultProfile(profileType);
     }
 
@@ -120,7 +120,7 @@ export class ProfilesCache {
      *
      * @returns {IProfileLoaded[]}
      */
-    public getProfiles(type = "zosmf"): imperative.IProfileLoaded[] {
+    public getProfiles(type = "zosmf"): IProfileLoaded[] {
         return this.profilesByType.get(type);
     }
 
@@ -144,7 +144,7 @@ export class ProfilesCache {
 
     public async refresh(apiRegister?: ZoweExplorerApi.IApiRegisterClient): Promise<void> {
         this.allProfiles = [];
-        let tmpAllProfiles: imperative.IProfileLoaded[] = [];
+        let tmpAllProfiles: IProfileLoaded[] = [];
         this.allTypes = [];
         const mProfileInfo = await this.getProfileInfo();
         const allTypes = this.getAllProfileTypes(apiRegister.registeredApiTypes());
@@ -234,8 +234,8 @@ export class ProfilesCache {
     }
 
     // get IProfileLoaded[] from imperative
-    public async fetchAllProfilesByType(type: string): Promise<imperative.IProfileLoaded[]> {
-        const profByType: imperative.IProfileLoaded[] = [];
+    public async fetchAllProfilesByType(type: string): Promise<IProfileLoaded[]> {
+        const profByType: IProfileLoaded[] = [];
         const mProfileInfo = await this.getProfileInfo();
         const profilesForType = mProfileInfo.getAllProfiles(type).filter((temp) => temp.profLoc.osLoc.length !== 0);
         if (profilesForType && profilesForType.length > 0) {
@@ -249,8 +249,8 @@ export class ProfilesCache {
         return profByType;
     }
 
-    public async directLoad(type: string, name: string): Promise<imperative.IProfileLoaded> {
-        let directProfile: imperative.IProfileLoaded;
+    public async directLoad(type: string, name: string): Promise<IProfileLoaded> {
+        let directProfile: IProfileLoaded;
         const profileManager = this.getCliProfileManager(type);
         if (profileManager) {
             directProfile = await profileManager.load({ name });
@@ -258,19 +258,19 @@ export class ProfilesCache {
         return directProfile;
     }
 
-    public async getProfileFromConfig(profileName: string): Promise<imperative.IProfAttrs> {
+    public async getProfileFromConfig(profileName: string): Promise<IProfAttrs> {
         const mProfileInfo = await this.getProfileInfo();
         const configAllProfiles = mProfileInfo.getAllProfiles().filter((temp) => temp.profLoc.osLoc.length !== 0);
         const currentProfile = configAllProfiles.filter((temprofile) => temprofile.profName === profileName)[0];
         return currentProfile;
     }
 
-    public async getLoadedProfConfig(profileName: string): Promise<imperative.IProfileLoaded> {
+    public async getLoadedProfConfig(profileName: string): Promise<IProfileLoaded> {
         const mProfileInfo = await this.getProfileInfo();
         const currentProfile = await this.getProfileFromConfig(profileName);
         if (currentProfile == null) return undefined;
         const mergedArgs = mProfileInfo.mergeArgsForProfile(currentProfile, { getSecureVals: true });
-        const profile: imperative.IProfile = {};
+        const profile: IProfile = {};
         for (const arg of mergedArgs.knownArgs) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             profile[arg.argName] = arg.argValue;
@@ -279,11 +279,12 @@ export class ProfilesCache {
     }
 
     // V1 specific used by Zowe Explorer to handle v1 profiles
-    public getCliProfileManager(type: string): imperative.CliProfileManager {
+    public getCliProfileManager(type: string): CliProfileManager {
         let profileManager = this.profileManagerByType.get(type);
         if (!profileManager) {
             try {
-                profileManager = new imperative.CliProfileManager({
+                profileManager = new CliProfileManager({
+                    // profileRootDirectory: path.join(zowe.getZoweDir(), "profiles"),
                     profileRootDirectory: path.join(getZoweDir(), "profiles"),
                     type,
                 });
@@ -300,8 +301,8 @@ export class ProfilesCache {
     }
 
     // This will retrieve the saved base profile in the allProfiles array
-    public getBaseProfile(): imperative.IProfileLoaded {
-        let baseProfile: imperative.IProfileLoaded;
+    public getBaseProfile(): IProfileLoaded {
+        let baseProfile: IProfileLoaded;
         for (const baseP of this.allProfiles) {
             if (baseP.type === "base") {
                 baseProfile = baseP;
@@ -311,7 +312,7 @@ export class ProfilesCache {
     }
 
     // This will retrieve the base profile from imperative
-    public async fetchBaseProfile(): Promise<imperative.IProfileLoaded> {
+    public async fetchBaseProfile(): Promise<IProfileLoaded> {
         const mProfileInfo = await this.getProfileInfo();
         const baseProfileAttrs = mProfileInfo.getDefaultProfile("base");
         const profAttr = this.getMergedAttrs(mProfileInfo, baseProfileAttrs);
@@ -321,6 +322,7 @@ export class ProfilesCache {
     public isSecureCredentialPluginActive(): boolean {
         let imperativeIsSecure = false;
         try {
+            // const fileName = path.join(zowe.getZoweDir(), "settings", "imperative.json");
             const fileName = path.join(getZoweDir(), "settings", "imperative.json");
             let settings: Record<string, unknown>;
             if (fs.existsSync(fileName)) {
@@ -343,8 +345,8 @@ export class ProfilesCache {
     public getProfileLoaded(
         profileName: string,
         profileType: string,
-        profile: imperative.IProfile
-    ): imperative.IProfileLoaded {
+        profile: IProfile
+    ): IProfileLoaded {
         return {
             message: "",
             name: profileName,
@@ -355,7 +357,7 @@ export class ProfilesCache {
     }
 
     // used by Zowe Explorer for v1 profiles
-    protected async deleteProfileOnDisk(ProfileInfo: imperative.IProfileLoaded): Promise<void> {
+    protected async deleteProfileOnDisk(ProfileInfo: IProfileLoaded): Promise<void> {
         await this.getCliProfileManager(ProfileInfo.type).delete({
             profile: ProfileInfo,
             name: ProfileInfo.name,
@@ -368,7 +370,7 @@ export class ProfilesCache {
         profileInfo: Record<string, unknown>,
         profileName: string,
         profileType: string
-    ): Promise<imperative.IProfile> {
+    ): Promise<IProfile> {
         const newProfile = await this.getCliProfileManager(profileType).save({
             profile: profileInfo,
             name: profileName,
@@ -381,10 +383,10 @@ export class ProfilesCache {
     // used by refresh to check correct merging of allProfiles
     protected checkMergingConfigAllProfiles(): void {
         const baseProfile = this.defaultProfileByType.get("base");
-        const allProfiles: imperative.IProfileLoaded[] = [];
+        const allProfiles: IProfileLoaded[] = [];
         this.allTypes.forEach((type) => {
             try {
-                const allProfilesByType: imperative.IProfileLoaded[] = [];
+                const allProfilesByType: IProfileLoaded[] = [];
                 const profByType = this.profilesByType.get(type);
                 profByType.forEach((profile) => {
                     if (
@@ -417,8 +419,8 @@ export class ProfilesCache {
 
     // check correct merging of a single profile
     protected async checkMergingConfigSingleProfile(
-        profile: imperative.IProfileLoaded
-    ): Promise<imperative.IProfileLoaded> {
+        profile: IProfileLoaded
+    ): Promise<IProfileLoaded> {
         const baseProfile = await this.fetchBaseProfile();
         if (
             (baseProfile?.profile.host !== profile?.profile.host ||
@@ -432,10 +434,10 @@ export class ProfilesCache {
     }
 
     protected getMergedAttrs(
-        mProfileInfo: imperative.ProfileInfo,
-        profAttrs: imperative.IProfAttrs
-    ): imperative.IProfile {
-        const profile: imperative.IProfile = {};
+        mProfileInfo: ProfileInfo,
+        profAttrs: IProfAttrs
+    ): IProfile {
+        const profile: IProfile = {};
         if (profAttrs != null) {
             const mergedArgs = mProfileInfo.mergeArgsForProfile(profAttrs, { getSecureVals: true });
             for (const arg of mergedArgs.knownArgs) {

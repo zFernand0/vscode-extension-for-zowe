@@ -10,20 +10,21 @@
  */
 
 // tslint:disable:no-magic-numbers
-import * as zowe from "@zowe/cli";
-import { IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg, Session } from "@zowe/imperative";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
+import * as globals from "../../../src/globals";
+import * as refreshActions from "../../../src/shared/refresh";
 import * as sinon from "sinon";
 import * as testConst from "../../../resources/testProfileData";
 import * as vscode from "vscode";
-import { ZosJobsProvider } from "../../../src/job/ZosJobsProvider";
-import * as refreshActions from "../../../src/shared/refresh";
-import { Job } from "../../../src/job/ZoweJobNode";
-import * as globals from "../../../src/globals";
+
+import { IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg, Session } from "@zowe/imperative";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
+
 import { DatasetTree } from "../../../src/dataset/DatasetTree";
 import { ZoweDatasetNode } from "../../../src/dataset/ZoweDatasetNode";
-import { createInstanceOfProfile } from "../../../__mocks__/mockCreators/shared";
+import { ZosJobsProvider } from "../../../src/job/ZosJobsProvider";
+import { Job } from "../../../src/job/ZoweJobNode";
 
 const TIMEOUT = 45000;
 declare var it: Mocha.ITestDefinition;
@@ -42,7 +43,7 @@ describe("jobNodeActions integration test", async () => {
         user: testConst.profile.user,
         password: testConst.profile.password,
     };
-    const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
+    const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
     ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
     const session = new Session(sessCfg);
     const testProfileLoaded: IProfileLoaded = {

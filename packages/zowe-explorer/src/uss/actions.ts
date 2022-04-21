@@ -10,11 +10,9 @@
  */
 
 import * as vscode from "vscode";
-import * as zowe from "@zowe/cli";
 import * as fs from "fs";
 import * as globals from "../globals";
 import * as path from "path";
-import { ZoweUSSNode } from "./ZoweUSSNode";
 import { concatChildNodes, willForceUpload, uploadContent } from "../shared/utils";
 import { errorHandling } from "../utils/ProfilesUtils";
 import { ValidProfileEnum, IZoweTree, IZoweUSSTreeNode } from "@zowe/zowe-explorer-api";
@@ -25,12 +23,9 @@ import { Session, ITaskWithStatus } from "@zowe/imperative";
 import * as contextually from "../shared/context";
 import { setFileSaved } from "../utils/workspace";
 import * as nls from "vscode-nls";
-import { getIconByNode } from "../generators/icons";
-import { returnIconState, resetValidationSettings } from "../shared/actions";
-import { PersistentFilters } from "../PersistentFilters";
 import { refreshAll } from "../shared/refresh";
 import { UIViews } from "../shared/ui-views";
-import { IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
+import { IUploadOptions, IZosFilesResponse } from "@zowe/zos-files-for-zowe-sdk";
 
 // Set up localization
 nls.config({
@@ -290,7 +285,7 @@ export async function saveUSSFile(doc: vscode.TextDocument, ussFileProvider: IZo
             binary =
                 binary || (await ZoweExplorerApiRegister.getUssApi(sesNode.getProfile()).isFileTagBinOrAscii(remote));
         }
-        const uploadResponse: zowe.IZosFilesResponse = await vscode.window.withProgress(
+        const uploadResponse: IZosFilesResponse = await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Window,
                 title: localize("saveUSSFile.response.title", "Saving file..."),
@@ -306,7 +301,7 @@ export async function saveUSSFile(doc: vscode.TextDocument, ussFileProvider: IZo
                 node.setEtag(uploadResponse.apiResponse.etag);
             }
             setFileSaved(true);
-            // this part never runs! zowe.Upload.fileToUSSFile doesn't return success: false, it just throws the error which is caught below!!!!!
+            // this part never runs! Upload.fileToUSSFile doesn't return success: false, it just throws the error which is caught below!!!!!
         } else {
             vscode.window.showErrorMessage(uploadResponse.commandResponse);
         }

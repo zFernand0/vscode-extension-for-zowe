@@ -10,11 +10,11 @@
  */
 
 import * as vscode from "vscode";
-import * as zowe from "@zowe/cli";
 import { ZoweExplorerApiRegister } from "./ZoweExplorerApiRegister";
 import { Profiles } from "./Profiles";
+import { IJobFile } from "@zowe/zos-jobs-for-zowe-sdk";
 
-export default class SpoolProvider implements vscode.TextDocumentContentProvider {
+export class SpoolProvider implements vscode.TextDocumentContentProvider {
     public static scheme = "zosspool";
 
     private mOnDidChange = new vscode.EventEmitter<vscode.Uri>();
@@ -44,7 +44,7 @@ export default class SpoolProvider implements vscode.TextDocumentContentProvider
  * @param session The name of the Zowe profile to use to get the Spool Content
  * @param spool The IJobFile to get the spool content for.
  */
-export function encodeJobFile(session: string, spool: zowe.IJobFile): vscode.Uri {
+export function encodeJobFile(session: string, spool: IJobFile): vscode.Uri {
     const query = JSON.stringify([session, spool]);
     return vscode.Uri.parse("").with({
         scheme: SpoolProvider.scheme,
@@ -66,7 +66,7 @@ export function encodeJobFile(session: string, spool: zowe.IJobFile): vscode.Uri
  * @param uniqueFragment The unique fragment of the encoded uri (can be timestamp, for example)
  */
 export const toUniqueJobFileUri =
-    (session: string, spool: zowe.IJobFile) =>
+    (session: string, spool: IJobFile) =>
     (uniqueFragment: string): vscode.Uri => {
         const encodedUri = encodeJobFile(session, spool);
         return encodedUri.with({
@@ -79,7 +79,7 @@ export const toUniqueJobFileUri =
  *
  * @param uri The URI passed to TextDocumentContentProvider
  */
-export function decodeJobFile(uri: vscode.Uri): [string, zowe.IJobFile] {
-    const [session, spool] = JSON.parse(uri.query) as [string, zowe.IJobFile];
+export function decodeJobFile(uri: vscode.Uri): [string, IJobFile] {
+    const [session, spool] = JSON.parse(uri.query) as [string, IJobFile];
     return [session, spool];
 }

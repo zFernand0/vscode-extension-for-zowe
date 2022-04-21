@@ -9,15 +9,16 @@
  *                                                                                 *
  */
 
-import * as imperative from "@zowe/imperative";
+import * as vscode from "vscode";
+
+import { IProfileLoaded, ICommandArguments, Session } from "@zowe/imperative";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
+import { ValidProfileEnum } from "@zowe/zowe-explorer-api";
+
 import { ZoweTreeProvider } from "../../src/abstract/ZoweTreeProvider";
 import { ZoweDatasetNode } from "../../src/dataset/ZoweDatasetNode";
 import { ZoweUSSNode } from "../../src/uss/ZoweUSSNode";
-import * as vscode from "vscode";
-import { IZoweNodeType, ValidProfileEnum } from "@zowe/zowe-explorer-api";
 import { FilterDescriptor } from "../../src/utils/ProfilesUtils";
-import * as zowe from "@zowe/cli";
-import { Profiles } from "../../src/Profiles";
 
 export function createPersistentConfig() {
     return {
@@ -35,7 +36,7 @@ export function createPersistentConfig() {
 }
 
 export function createISession() {
-    return new imperative.Session({
+    return new Session({
         user: "fake",
         password: "fake",
         hostname: "fake",
@@ -46,7 +47,7 @@ export function createISession() {
 }
 
 export function createISessionWithoutCredentials() {
-    return new imperative.Session({
+    return new Session({
         user: "",
         password: "",
         hostname: "fake",
@@ -56,8 +57,8 @@ export function createISessionWithoutCredentials() {
     });
 }
 
-export function createSessCfgFromArgs(testProfile: imperative.IProfileLoaded) {
-    const cmdArgs: imperative.ICommandArguments = {
+export function createSessCfgFromArgs(testProfile: IProfileLoaded) {
+    const cmdArgs: ICommandArguments = {
         $0: "zowe",
         _: [""],
         host: testProfile.profile.host,
@@ -67,8 +68,8 @@ export function createSessCfgFromArgs(testProfile: imperative.IProfileLoaded) {
         user: testProfile.profile.user,
         password: testProfile.profile.password,
     };
-    const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
-    const session = new imperative.Session(sessCfg);
+    const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
+    const session = new Session(sessCfg);
     return session;
 }
 
@@ -79,7 +80,7 @@ export function removeNodeFromArray(badNode, array) {
     );
 }
 
-export function createIProfile(): imperative.IProfileLoaded {
+export function createIProfile(): IProfileLoaded {
     return {
         name: "sestest",
         profile: {
@@ -95,7 +96,7 @@ export function createIProfile(): imperative.IProfileLoaded {
     };
 }
 
-export function createInvalidIProfile(): imperative.IProfileLoaded {
+export function createInvalidIProfile(): IProfileLoaded {
     return {
         name: "sestest",
         profile: {
@@ -113,7 +114,7 @@ export function createInvalidIProfile(): imperative.IProfileLoaded {
     };
 }
 
-export function createValidIProfile(): imperative.IProfileLoaded {
+export function createValidIProfile(): IProfileLoaded {
     return {
         name: "sestest",
         profile: {
@@ -131,7 +132,7 @@ export function createValidIProfile(): imperative.IProfileLoaded {
     };
 }
 
-export function createAltTypeIProfile(): imperative.IProfileLoaded {
+export function createAltTypeIProfile(): IProfileLoaded {
     return {
         name: "altTypeProfile",
         profile: {
@@ -184,7 +185,7 @@ export function createTextDocument(name: string, sessionNode?: ZoweDatasetNode |
     };
 }
 
-export function createInstanceOfProfile(profile: imperative.IProfileLoaded) {
+export function createInstanceOfProfile(profile: IProfileLoaded) {
     return {
         allProfiles: [{ name: "sestest" }, { name: "profile1" }, { name: "profile2" }],
         defaultProfile: { name: "sestest" },

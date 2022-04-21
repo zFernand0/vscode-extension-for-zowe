@@ -10,18 +10,19 @@
  */
 
 // tslint:disable:no-magic-numbers
-import * as zowe from "@zowe/cli";
-import { Logger, IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg, Session } from "@zowe/imperative";
 import * as chai from "chai";
-import * as sinon from "sinon";
 import * as chaiAsPromised from "chai-as-promised";
-// tslint:disable-next-line:no-implicit-dependencies
 import * as expect from "expect";
-import * as vscode from "vscode";
+import * as globals from "../../src/globals";
+import * as sinon from "sinon";
 import * as testConst from "../../resources/testProfileData";
+import * as vscode from "vscode";
+
+import { Logger, IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg, Session } from "@zowe/imperative";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
+
 import { USSTree } from "../../src/uss/USSTree";
 import { ZoweUSSNode } from "../../src/uss/ZoweUSSNode";
-import * as globals from "../../src/globals";
 
 declare var it: any;
 
@@ -48,7 +49,7 @@ describe("USSTree Integration Tests", async () => {
         user: testProfile.profile.user,
         password: testProfile.profile.password,
     };
-    const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
+    const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
     ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
     const session = new Session(sessCfg);
     const sessNode = new ZoweUSSNode(

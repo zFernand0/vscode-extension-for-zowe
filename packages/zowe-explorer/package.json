@@ -1743,7 +1743,8 @@
     "ts-node": "^8.10.1",
     "tslint": "^5.17.0",
     "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11"
+    "webpack-cli": "^3.3.11",
+    "madge": "^5.0.1"
   },
   "dependencies": {
     "@zowe/zowe-explorer-api": "2.0.0-SNAPSHOT",

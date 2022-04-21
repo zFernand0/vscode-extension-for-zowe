@@ -16,7 +16,7 @@
 import { FtpJesApi } from "../../../src/ZoweExplorerFtpJesApi";
 import { DataSetUtils, JobUtils } from "@zowe/zos-ftp-for-zowe-cli";
 import TestUtils from "../utils/TestUtils";
-import { DownloadJobs } from "@zowe/cli";
+import { DownloadJobs } from "@zowe/zos-jobs-for-zowe-sdk";
 import * as imperative from "@zowe/imperative";
 
 // two methods to mock modules: create a __mocks__ file for zowe-explorer-api.ts and direct mock for extension.ts

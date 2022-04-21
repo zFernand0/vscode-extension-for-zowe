@@ -13,22 +13,21 @@ import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
 import * as tmp from "tmp";
-import * as imperative from "@zowe/imperative";
-import * as zowe from "@zowe/cli";
 
-import { IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
+import { IO } from "@zowe/imperative";
 import { MessageSeverityEnum, ZoweExplorerApi, ZoweVsCodeExtension } from "@zowe/zowe-explorer-api";
 import { CoreUtils, UssUtils, TRANSFER_TYPE_ASCII, TRANSFER_TYPE_BINARY } from "@zowe/zos-ftp-for-zowe-cli";
 import { Buffer } from "buffer";
 import { AbstractFtpApi } from "./ZoweExplorerAbstractFtpApi";
 import { ZoweLogger } from "./ZoweExplorerFtpUtils";
+import { IDownloadOptions, IUploadOptions, IZosFilesResponse, ZosFilesUtils } from "@zowe/zos-files-for-zowe-sdk";
 
 // The Zowe FTP CLI plugin is written and uses mostly JavaScript, so relax the rules here.
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
-    public async fileList(ussFilePath: string): Promise<zowe.IZosFilesResponse> {
+    public async fileList(ussFilePath: string): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {
@@ -56,7 +55,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
         return false; // TODO: needs to be implemented checking file type
     }
 
-    public async getContents(ussFilePath: string, options: zowe.IDownloadOptions): Promise<zowe.IZosFilesResponse> {
+    public async getContents(ussFilePath: string, options: IDownloadOptions): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         const targetFile = options.file;
         const transferOptions = {
@@ -68,7 +67,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
         try {
             connection = await this.ftpClient(this.checkedProfile());
             if (connection && targetFile) {
-                imperative.IO.createDirsSyncFromFilePath(targetFile);
+                IO.createDirsSyncFromFilePath(targetFile);
                 await UssUtils.downloadFile(connection, ussFilePath, transferOptions);
                 result.success = true;
                 result.commandResponse = "";
@@ -90,7 +89,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
         localEncoding?: string,
         etag?: string,
         returnEtag?: boolean
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         const transferOptions = {
             transferType: binary ? TRANSFER_TYPE_BINARY : TRANSFER_TYPE_ASCII,
             localFile: inputFilePath,
@@ -106,7 +105,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
             // Save-Save with FTP requires loading the file first
             if (returnEtag && etag) {
                 const tmpFileName = tmp.tmpNameSync();
-                const options: zowe.IDownloadOptions = {
+                const options: IDownloadOptions = {
                     binary,
                     file: tmpFileName,
                 };
@@ -145,11 +144,11 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
         ussDirectoryPath: string,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         options: IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         let result = this.getDefaultResponse();
 
         // Check if inputDirectory is directory
-        if (!imperative.IO.isDir(inputDirectoryPath)) {
+        if (!IO.isDir(inputDirectoryPath)) {
             ZoweVsCodeExtension.showVsCodeMessage(
                 "The local directory path provided does not exist.",
                 MessageSeverityEnum.ERROR,
@@ -158,7 +157,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
             throw new Error();
         }
         // getting list of files from directory
-        const files = zowe.ZosFilesUtils.getFileListFromPath(inputDirectoryPath, false);
+        const files = ZosFilesUtils.getFileListFromPath(inputDirectoryPath, false);
         // TODO: this solution will not perform very well; rewrite this and putContents methods
         for (const file of files) {
             const relativePath = path.relative(inputDirectoryPath, file).replace(/\\/g, "/");
@@ -173,7 +172,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
         type: string,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         mode?: string
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {
@@ -201,7 +200,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
         }
     }
 
-    public async delete(ussPath: string, recursive?: boolean): Promise<zowe.IZosFilesResponse> {
+    public async delete(ussPath: string, recursive?: boolean): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {
@@ -224,7 +223,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
         }
     }
 
-    public async rename(currentUssPath: string, newUssPath: string): Promise<zowe.IZosFilesResponse> {
+    public async rename(currentUssPath: string, newUssPath: string): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {
@@ -257,7 +256,7 @@ export class FtpUssApi extends AbstractFtpApi implements ZoweExplorerApi.IUss {
         }
     }
 
-    private getDefaultResponse(): zowe.IZosFilesResponse {
+    private getDefaultResponse(): IZosFilesResponse {
         return {
             success: false,
             commandResponse: "Could not get a valid FTP connection.",

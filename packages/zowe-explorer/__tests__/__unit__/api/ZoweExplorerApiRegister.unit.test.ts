@@ -12,26 +12,27 @@
 // tslint:disable: max-classes-per-file
 
 jest.mock("@zowe/imperative");
-import * as zowe from "@zowe/cli";
+
 import { IProfileLoaded, Session } from "@zowe/imperative";
+import { IDownloadOptions, IUploadOptions, IZosFilesResponse } from "@zowe/zos-files-for-zowe-sdk";
 import { ZoweExplorerApi, ZosmfUssApi, ZosmfJesApi, ZosmfMvsApi } from "@zowe/zowe-explorer-api";
-import { ZoweExplorerApiRegister } from "../../../src/ZoweExplorerApiRegister";
-import { Profiles } from "../../../src/Profiles";
-import { IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
+
 import { createInstanceOfProfile, createValidIProfile } from "../../../__mocks__/mockCreators/shared";
+import { Profiles } from "../../../src/Profiles";
+import { ZoweExplorerApiRegister } from "../../../src/ZoweExplorerApiRegister";
 
 class MockUssApi1 implements ZoweExplorerApi.IUss {
     public profile?: IProfileLoaded;
     public getProfileTypeName(): string {
         return "api1typename";
     }
-    public fileList(ussFilePath: string): Promise<zowe.IZosFilesResponse> {
+    public fileList(ussFilePath: string): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public isFileTagBinOrAscii(ussFilePath: string): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
-    public getContents(ussFilePath: string, options: zowe.IDownloadOptions): Promise<zowe.IZosFilesResponse> {
+    public getContents(ussFilePath: string, options: IDownloadOptions): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public putContents(
@@ -41,30 +42,30 @@ class MockUssApi1 implements ZoweExplorerApi.IUss {
         localEncoding?: string,
         etag?: string,
         returnEtag?: boolean
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public putContent(
         inputFilePath: string,
         ussFilePath: string,
         options: IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public uploadDirectory(
         inputDirectoryPath: string,
         ussDirectoryPath: string,
         options: IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
-    public create(ussPath: string, type: string, mode?: string): Promise<zowe.IZosFilesResponse> {
+    public create(ussPath: string, type: string, mode?: string): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
-    public delete(ussPath: string, recursive?: boolean): Promise<zowe.IZosFilesResponse> {
+    public delete(ussPath: string, recursive?: boolean): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
-    public rename(currentUssPath: string, newUssPath: string): Promise<zowe.IZosFilesResponse> {
+    public rename(currentUssPath: string, newUssPath: string): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public getSession(profile?: IProfileLoaded): Session {
@@ -89,13 +90,13 @@ class MockUssApi2 implements ZoweExplorerApi.IUss {
     public getProfileTypeName(): string {
         return "api2typename";
     }
-    public fileList(ussFilePath: string): Promise<zowe.IZosFilesResponse> {
+    public fileList(ussFilePath: string): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public isFileTagBinOrAscii(ussFilePath: string): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
-    public getContents(ussFilePath: string, options: zowe.IDownloadOptions): Promise<zowe.IZosFilesResponse> {
+    public getContents(ussFilePath: string, options: IDownloadOptions): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public putContents(
@@ -105,30 +106,30 @@ class MockUssApi2 implements ZoweExplorerApi.IUss {
         localEncoding?: string,
         etag?: string,
         returnEtag?: boolean
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public putContent(
         inputFilePath: string,
         ussFilePath: string,
         options: IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public uploadDirectory(
         inputDirectoryPath: string,
         ussDirectoryPath: string,
         options: IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
-    public create(ussPath: string, type: string, mode?: string): Promise<zowe.IZosFilesResponse> {
+    public create(ussPath: string, type: string, mode?: string): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
-    public delete(ussPath: string, recursive?: boolean): Promise<zowe.IZosFilesResponse> {
+    public delete(ussPath: string, recursive?: boolean): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
-    public rename(currentUssPath: string, newUssPath: string): Promise<zowe.IZosFilesResponse> {
+    public rename(currentUssPath: string, newUssPath: string): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public getSession(profile?: IProfileLoaded): Session {

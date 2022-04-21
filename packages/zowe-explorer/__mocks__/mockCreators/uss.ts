@@ -9,15 +9,17 @@
  *                                                                                 *
  */
 
-import { ZoweUSSNode } from "../../src/uss/ZoweUSSNode";
-import * as imperative from "@zowe/imperative";
 import * as vscode from "vscode";
 import * as globals from "../../src/globals";
+
+import { PersistenceSchemaEnum } from "@zowe/zowe-explorer-api";
+import { IProfileLoaded, Session } from "@zowe/imperative";
+
+import { ZoweUSSNode } from "../../src/uss/ZoweUSSNode";
 import { ZoweTreeProvider } from "../../src/abstract/ZoweTreeProvider";
 import { getIconByNode } from "../../src/generators/icons";
 import { removeNodeFromArray } from "./shared";
 import { USSTree } from "../../src/uss/USSTree";
-import { PersistenceSchemaEnum } from "@zowe/zowe-explorer-api";
 
 export function createUSSTree(
     favoriteNodes: ZoweUSSNode[],
@@ -76,7 +78,7 @@ export function createUSSNode(session, profile) {
     return ussNode;
 }
 
-export function createUSSSessionNode(session: imperative.Session, profile: imperative.IProfileLoaded) {
+export function createUSSSessionNode(session: Session, profile: IProfileLoaded) {
     const zoweUSSNode = new ZoweUSSNode(
         "sestest",
         vscode.TreeItemCollapsibleState.Collapsed,

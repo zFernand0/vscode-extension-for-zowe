@@ -10,21 +10,21 @@
  */
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import * as imperative from "@zowe/imperative";
+import { Session, IProfileLoaded } from "@zowe/imperative";
 import { FTPConfig, IZosFTPProfile } from "@zowe/zos-ftp-for-zowe-cli";
 import { MessageSeverityEnum, ZoweExplorerApi, ZoweVsCodeExtension } from "@zowe/zowe-explorer-api";
 import { ZoweLogger } from "./ZoweExplorerFtpUtils";
 
 export abstract class AbstractFtpApi implements ZoweExplorerApi.ICommon {
-    private session?: imperative.Session;
+    private session?: Session;
 
-    public constructor(public profile?: imperative.IProfileLoaded) {}
+    public constructor(public profile?: IProfileLoaded) {}
 
     public static getProfileTypeName(): string {
         return "zftp";
     }
 
-    public getSession(profile?: imperative.IProfileLoaded): imperative.Session {
+    public getSession(profile?: IProfileLoaded): Session {
         if (!this.session) {
             const ftpProfile = (profile || this.profile)?.profile;
             if (!ftpProfile) {
@@ -35,7 +35,7 @@ export abstract class AbstractFtpApi implements ZoweExplorerApi.ICommon {
                 );
                 throw new Error();
             }
-            this.session = new imperative.Session({
+            this.session = new Session({
                 hostname: ftpProfile.host,
                 port: ftpProfile.port,
                 user: ftpProfile.user,
@@ -50,7 +50,7 @@ export abstract class AbstractFtpApi implements ZoweExplorerApi.ICommon {
         return AbstractFtpApi.getProfileTypeName();
     }
 
-    public checkedProfile(): imperative.IProfileLoaded {
+    public checkedProfile(): IProfileLoaded {
         if (!this.profile?.profile) {
             ZoweVsCodeExtension.showVsCodeMessage(
                 "Internal error: ZoweVscFtpRestApi instance was not initialized with a valid Zowe profile.",
@@ -62,7 +62,7 @@ export abstract class AbstractFtpApi implements ZoweExplorerApi.ICommon {
         return this.profile;
     }
 
-    public async ftpClient(profile: imperative.IProfileLoaded): Promise<any> {
+    public async ftpClient(profile: IProfileLoaded): Promise<any> {
         const ftpProfile = profile.profile as IZosFTPProfile;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return await FTPConfig.connectFromArguments({
@@ -82,7 +82,7 @@ export abstract class AbstractFtpApi implements ZoweExplorerApi.ICommon {
         }
     }
 
-    public async getStatus(validateProfile?: imperative.IProfileLoaded, profileType?: string): Promise<string> {
+    public async getStatus(validateProfile?: IProfileLoaded, profileType?: string): Promise<string> {
         if (profileType === "zftp") {
             let sessionStatus;
             /* check the ftp connection to validate the profile */

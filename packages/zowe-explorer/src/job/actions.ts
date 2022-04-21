@@ -10,7 +10,6 @@
  */
 
 import * as vscode from "vscode";
-import * as zowe from "@zowe/cli";
 import { errorHandling } from "../utils/ProfilesUtils";
 import { Profiles } from "../Profiles";
 import { ZoweExplorerApiRegister } from "../ZoweExplorerApiRegister";
@@ -22,6 +21,7 @@ import { IProfileLoaded } from "@zowe/imperative";
 import * as globals from "../globals";
 import { refreshAll as refreshAllJobs } from "../shared/refresh";
 import { UIViews } from "../shared/ui-views";
+import { IJobFile } from "@zowe/zos-jobs-for-zowe-sdk";
 
 // Set up localization
 nls.config({
@@ -62,7 +62,7 @@ export async function downloadSpool(job: IZoweJobTreeNode) {
  * @param spool The IJobFile to get the spool content for
  * @param refreshTimestamp The timestamp of the last job node refresh
  */
-export async function getSpoolContent(session: string, spool: zowe.IJobFile, refreshTimestamp: number) {
+export async function getSpoolContent(session: string, spool: IJobFile, refreshTimestamp: number) {
     const profiles = Profiles.getInstance();
     let zosmfProfile: IProfileLoaded;
     try {

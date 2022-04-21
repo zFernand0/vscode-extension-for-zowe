@@ -9,11 +9,12 @@
  *                                                                                 *
  */
 
+import * as nls from "vscode-nls";
+
 import { IProfileLoaded } from "@zowe/imperative";
 import { ZoweExplorerApi, ZosmfUssApi, ZosmfMvsApi, ZosmfJesApi, ZosmfCommandApi } from "@zowe/zowe-explorer-api";
 import { ZoweExplorerExtender } from "./ZoweExplorerExtender";
 
-import * as nls from "vscode-nls";
 // Set up localization
 nls.config({
     messageFormat: nls.MessageFormat.bundle,

@@ -10,39 +10,19 @@
  */
 
 import {
-    createISessionWithoutCredentials,
-    createTreeView,
-    createIProfile,
-    createInstanceOfProfile,
-    createQuickPickItem,
-    createQuickPickContent,
     createInputBox,
-    createSessCfgFromArgs,
-    createPersistentConfig,
-    createInvalidIProfile,
     createValidIProfile,
     createISession,
-    createAltTypeIProfile,
     createInstanceOfProfileInfo,
     createInstanceOfProfilesCache,
 } from "../../__mocks__/mockCreators/shared";
-import { createDatasetSessionNode, createDatasetTree } from "../../__mocks__/mockCreators/datasets";
-import { createProfileManager, createTestSchemas, newTestSchemas } from "../../__mocks__/mockCreators/profiles";
+import { createProfileManager, newTestSchemas } from "../../__mocks__/mockCreators/profiles";
 import * as vscode from "vscode";
-import * as utils from "../../src/utils/ProfilesUtils";
-import * as child_process from "child_process";
-import { Logger, SessConstants } from "@zowe/imperative";
+import { Logger } from "@zowe/imperative";
 import * as globals from "../../src/globals";
-import { ValidProfileEnum, IZoweNodeType, ProfilesCache } from "@zowe/zowe-explorer-api";
-import { ZosmfSession } from "@zowe/cli";
-import { ZoweExplorerApiRegister } from "../../src/ZoweExplorerApiRegister";
+import { ProfilesCache } from "@zowe/zowe-explorer-api";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
 import { Profiles } from "../../src/Profiles";
-import { ZoweUSSNode } from "../../src/uss/ZoweUSSNode";
-import { ZoweDatasetNode } from "../../src/dataset/ZoweDatasetNode";
-import { Job } from "../../src/job/ZoweJobNode";
-import { createUSSSessionNode, createUSSTree } from "../../__mocks__/mockCreators/uss";
-import { createJobsTree, createIJobObject, createJobSessionNode } from "../../__mocks__/mockCreators/jobs";
-import { glob } from "glob";
 
 jest.mock("vscode");
 jest.mock("child_process");

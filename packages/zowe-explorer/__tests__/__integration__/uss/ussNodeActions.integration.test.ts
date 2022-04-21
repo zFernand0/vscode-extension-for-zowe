@@ -10,16 +10,19 @@
  */
 
 // tslint:disable:no-magic-numbers
-import * as zowe from "@zowe/cli";
-import { Logger, IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg, Session } from "@zowe/imperative";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
+import * as globals from "../../../src/globals";
 import * as sinon from "sinon";
 import * as testConst from "../../../resources/testProfileData";
 import * as vscode from "vscode";
+
+import { Logger, IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg, Session } from "@zowe/imperative";
+import { Delete, Create, List } from "@zowe/zos-files-for-zowe-sdk";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
+
 import { USSTree } from "../../../src/uss/USSTree";
 import { ZoweUSSNode } from "../../../src/uss/ZoweUSSNode";
-import * as globals from "../../../src/globals";
 
 const TIMEOUT = 45000;
 declare var it: Mocha.ITestDefinition;
@@ -47,7 +50,7 @@ describe("ussNodeActions integration test", async () => {
         user: testProfile.profile.user,
         password: testProfile.profile.password,
     };
-    const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
+    const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
     ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
     const session = new Session(sessCfg);
     const sessionNode = new ZoweUSSNode(
@@ -125,13 +128,13 @@ describe("ussNodeActions integration test", async () => {
         afterEach(async () => {
             await Promise.all(
                 [
-                    zowe.Delete.ussFile(sessionNode.getSession(), beforeFileName),
-                    zowe.Delete.ussFile(sessionNode.getSession(), afterFileName),
+                    Delete.ussFile(sessionNode.getSession(), beforeFileName),
+                    Delete.ussFile(sessionNode.getSession(), afterFileName),
                 ].map((p) => p.catch((err) => err))
             );
         });
         beforeEach(async () => {
-            await zowe.Create.uss(sessionNode.getSession(), beforeFileName, "file").catch((err) => err);
+            await Create.uss(sessionNode.getSession(), beforeFileName, "file").catch((err) => err);
         });
 
         it("should rename a uss file", async () => {
@@ -163,7 +166,7 @@ describe("ussNodeActions integration test", async () => {
                 inputBoxStub.returns(afterNameBase);
 
                 await testTree.rename(testNode);
-                list = await zowe.List.fileList(sessionNode.getSession(), path);
+                list = await List.fileList(sessionNode.getSession(), path);
                 list = list.apiResponse.items ? list.apiResponse.items.map((entry) => entry.name) : [];
             } catch (err) {
                 error = err;

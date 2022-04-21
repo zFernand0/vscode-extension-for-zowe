@@ -9,19 +9,18 @@
  *                                                                                 *
  */
 
-import * as imperative from "@zowe/imperative";
 import * as vscode from "vscode";
-import * as path from "path";
 import { ProfilesCache } from "../profiles";
 import { KeytarCredentialManager } from "./KeytarCredentialManager";
 import * as globals from "../globals";
+import { Logger, CredentialManagerFactory } from "@zowe/imperative";
 
 export class KeytarApi {
-    public constructor(protected log: imperative.Logger) {}
+    public constructor(protected log: Logger) {}
 
     // v1 specific
     public async activateKeytar(initialized: boolean, isTheia: boolean): Promise<void> {
-        const log = imperative.Logger.getAppLogger();
+        const log = Logger.getAppLogger();
         const profiles = new ProfilesCache(log, vscode.workspace.workspaceFolders?.[0].uri.fsPath);
         const scsActive = profiles.isSecureCredentialPluginActive();
         if (scsActive) {
@@ -29,7 +28,7 @@ export class KeytarApi {
             if (!initialized && keytar) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 KeytarCredentialManager.keytar = keytar;
-                await imperative.CredentialManagerFactory.initialize({
+                await CredentialManagerFactory.initialize({
                     service: globals.SETTINGS_SCS_DEFAULT,
                     Manager: KeytarCredentialManager,
                     displayName: globals.ZOWE_EXPLORER,

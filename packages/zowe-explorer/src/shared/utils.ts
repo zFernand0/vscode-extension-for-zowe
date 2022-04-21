@@ -21,11 +21,10 @@ import {
     IZoweUSSTreeNode,
     IZoweJobTreeNode,
 } from "@zowe/zowe-explorer-api";
-import { Profiles } from "../Profiles";
 import { ZoweExplorerApiRegister } from "../ZoweExplorerApiRegister";
-import { ISession, IProfileLoaded, ITaskWithStatus } from "@zowe/imperative";
+import { IProfileLoaded, ITaskWithStatus } from "@zowe/imperative";
 import * as nls from "vscode-nls";
-import { IZosFilesResponse } from "@zowe/cli";
+import { IZosFilesResponse } from "@zowe/zos-files-for-zowe-sdk";
 import { IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
 
 // Set up localization

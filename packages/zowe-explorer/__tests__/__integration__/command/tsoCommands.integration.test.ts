@@ -9,13 +9,14 @@
  *                                                                                 *
  */
 
-import * as zowe from "@zowe/cli";
-import * as imperative from "@zowe/imperative";
-import * as sinon from "sinon";
-import * as vscode from "vscode";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
+import * as sinon from "sinon";
 import * as testConst from "../../../resources/testProfileData";
+import * as vscode from "vscode";
+
+import { ConnectionPropsForSessCfg, ICommandArguments, IProfileLoaded, Session } from "@zowe/imperative";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
 
 import { ZoweDatasetNode } from "../../../src/dataset/ZoweDatasetNode";
 import { TsoCommandHandler } from "../../../src/command/TsoCommandHandler";
@@ -24,7 +25,7 @@ const TIMEOUT = 45000;
 declare var it: Mocha.ITestDefinition;
 
 describe("tsoCommands integration test", async () => {
-    const testProfile: imperative.IProfileLoaded = {
+    const testProfile: IProfileLoaded = {
         name: testConst.profile.name,
         profile: testConst.profile,
         type: testConst.profile.type,
@@ -36,7 +37,7 @@ describe("tsoCommands integration test", async () => {
     const expect = chai.expect;
     chai.use(chaiAsPromised);
     const TEST_CMD = "/PROFILE";
-    const cmdArgs: imperative.ICommandArguments = {
+    const cmdArgs: ICommandArguments = {
         $0: "zowe",
         _: [""],
         host: testProfile.profile.host,
@@ -46,9 +47,9 @@ describe("tsoCommands integration test", async () => {
         user: testProfile.profile.user,
         password: testProfile.profile.password,
     };
-    const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
-    imperative.ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
-    const session = new imperative.Session(sessCfg);
+    const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
+    ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
+    const session = new Session(sessCfg);
     const testNode = new ZoweDatasetNode(
         "BRTVS99.DDIR",
         vscode.TreeItemCollapsibleState.Collapsed,

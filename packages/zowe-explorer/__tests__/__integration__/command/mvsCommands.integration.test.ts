@@ -9,7 +9,6 @@
  *                                                                                 *
  */
 
-import * as zowe from "@zowe/cli";
 import * as imperative from "@zowe/imperative";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
@@ -17,6 +16,7 @@ import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import * as testConst from "../../../resources/testProfileData";
 
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
 import { MvsCommandHandler } from "../../../src/command/MvsCommandHandler";
 import { ZoweDatasetNode } from "../../../src/dataset/ZoweDatasetNode";
 
@@ -45,7 +45,7 @@ describe("mvsCommands integration test", async () => {
         user: testProfile.profile.user,
         password: testProfile.profile.password,
     };
-    const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
+    const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
     imperative.ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
     const session = new imperative.Session(sessCfg);
     const testNode = new ZoweDatasetNode(

@@ -10,13 +10,13 @@
  */
 
 import * as spoolprovider from "../../src/SpoolProvider";
-import * as zowe from "@zowe/cli";
 import { IProfileLoaded } from "@zowe/imperative";
 import * as vscode from "vscode";
 import { Profiles } from "../../src/Profiles";
+import { IJobFile } from "@zowe/zos-jobs-for-zowe-sdk";
 
 describe("SpoolProvider Unit Tests", () => {
-    const iJobFile: zowe.IJobFile = {
+    const iJobFile: IJobFile = {
         "byte-count": 128,
         "job-correlator": "",
         "record-count": 1,

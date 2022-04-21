@@ -12,15 +12,16 @@
 import * as vscode from "vscode";
 import * as nls from "vscode-nls";
 import * as globals from "../globals";
-import * as imperative from "@zowe/imperative";
-import { ValidProfileEnum, IZoweTreeNode, ProfilesCache, ZoweVsCodeExtension } from "@zowe/zowe-explorer-api";
+
+import { ValidProfileEnum, IZoweTreeNode, ZoweVsCodeExtension } from "@zowe/zowe-explorer-api";
 import { PersistentFilters } from "../PersistentFilters";
 import { Profiles } from "../Profiles";
 import { ZoweExplorerApiRegister } from "../ZoweExplorerApiRegister";
 import { errorHandling, FilterDescriptor, FilterItem, resolveQuickPickHelper } from "../utils/ProfilesUtils";
 import { ZoweCommandProvider } from "../abstract/ZoweCommandProvider";
-import { IStartTsoParms } from "@zowe/cli";
+import { IStartTsoParms } from "@zowe/zos-tso-for-zowe-sdk";
 import { UIViews } from "../shared/ui-views";
+import { IProfileLoaded, ProfileInfo, IProfAttrs, Session } from "@zowe/imperative";
 
 // Set up localization
 nls.config({
@@ -68,8 +69,8 @@ export class TsoCommandHandler extends ZoweCommandProvider {
      * @param session the session the command is to run against (optional) user is prompted if not supplied
      * @param command the command string (optional) user is prompted if not supplied
      */
-    public async issueTsoCommand(session?: imperative.Session, command?: string, node?: IZoweTreeNode) {
-        let profile: imperative.IProfileLoaded;
+    public async issueTsoCommand(session?: Session, command?: string, node?: IZoweTreeNode) {
+        let profile: IProfileLoaded;
         if (node) {
             await this.checkCurrentProfile(node);
             if (!session) {
@@ -81,7 +82,7 @@ export class TsoCommandHandler extends ZoweCommandProvider {
         }
         if (!session) {
             const profiles = Profiles.getInstance();
-            const allProfiles: imperative.IProfileLoaded[] = profiles.allProfiles;
+            const allProfiles: IProfileLoaded[] = profiles.allProfiles;
             const profileNamesList = allProfiles.map((temprofile) => {
                 return temprofile.name;
             });
@@ -231,7 +232,7 @@ export class TsoCommandHandler extends ZoweCommandProvider {
      * @param profile profile to be used
      * @param tsoParams parameters (from TSO profile, when used)
      */
-    private async issueCommand(command: string, profile: imperative.IProfileLoaded, tsoParams?: IStartTsoParms) {
+    private async issueCommand(command: string, profile: IProfileLoaded, tsoParams?: IStartTsoParms) {
         try {
             if (command) {
                 // If the user has started their command with a / then remove it
@@ -278,8 +279,8 @@ export class TsoCommandHandler extends ZoweCommandProvider {
         }
     }
 
-    private async selectTsoProfile(tsoProfiles: imperative.IProfileLoaded[] = []): Promise<imperative.IProfileLoaded> {
-        let tsoProfile: imperative.IProfileLoaded;
+    private async selectTsoProfile(tsoProfiles: IProfileLoaded[] = []): Promise<IProfileLoaded> {
+        let tsoProfile: IProfileLoaded;
         if (tsoProfiles.length > 1) {
             const tsoProfileNamesList = tsoProfiles.map((temprofile) => {
                 return temprofile.name;
@@ -308,8 +309,8 @@ export class TsoCommandHandler extends ZoweCommandProvider {
 
     private async getTsoParams(): Promise<IStartTsoParms> {
         const profileInfo = globals.PROFILESCACHE.getProfileInfo();
-        const tsoProfiles: imperative.IProfileLoaded[] = [];
-        let tsoProfile: imperative.IProfileLoaded;
+        const tsoProfiles: IProfileLoaded[] = [];
+        let tsoProfile: IProfileLoaded;
         const tsoParms: IStartTsoParms = {};
         // Keys in the IStartTsoParms interface
         // TODO(zFernand0): Request the CLI squad that all interfaces are also exported as values that we can iterate
@@ -333,10 +334,10 @@ export class TsoCommandHandler extends ZoweCommandProvider {
             const tempProfiles = profileInfo.getAllProfiles("tso");
             if (tempProfiles.length > 0) {
                 tsoProfile = await this.selectTsoProfile(
-                    tempProfiles.map((p) => imperative.ProfileInfo.profAttrsToProfLoaded(p))
+                    tempProfiles.map((p) => ProfileInfo.profAttrsToProfLoaded(p))
                 );
                 if (tsoProfile != null) {
-                    const prof = profileInfo.mergeArgsForProfile(tsoProfile.profile as imperative.IProfAttrs);
+                    const prof = profileInfo.mergeArgsForProfile(tsoProfile.profile as IProfAttrs);
                     iStartTso.forEach(
                         (p) => (tsoProfile.profile[p] = prof.knownArgs.find((a) => a.argName === p)?.argValue)
                     );

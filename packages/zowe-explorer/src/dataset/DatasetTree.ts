@@ -34,7 +34,7 @@ import * as contextually from "../shared/context";
 import { resetValidationSettings } from "../shared/actions";
 import { closeOpenedTextFile } from "../utils/workspace";
 import { PersistentFilters } from "../PersistentFilters";
-import { IDataSet, IListOptions } from "@zowe/cli";
+import { IDataSet, IListOptions } from "@zowe/zos-files-for-zowe-sdk";
 import { UIViews } from "../shared/ui-views";
 
 // Set up localization

@@ -9,36 +9,36 @@
  *                                                                                 *
  */
 
-// import * as zowe from "@zowe/cli";
 import * as fs from "fs";
 import * as path from "path";
 import * as globals from "./globals";
+import * as nls from "vscode-nls";
 import * as vscode from "vscode";
 import * as ussActions from "./uss/actions";
 import * as dsActions from "./dataset/actions";
 import * as jobActions from "./job/actions";
 import * as refreshActions from "./shared/refresh";
 import * as sharedActions from "./shared/actions";
+
 import {
     IZoweDatasetTreeNode,
     IZoweJobTreeNode,
     IZoweUSSTreeNode,
     IZoweTreeNode,
     IZoweTree,
-    getZoweDir,
 } from "@zowe/zowe-explorer-api";
+import { CliProfileManager, ImperativeConfig } from "@zowe/imperative";
+import { getZoweDir } from "@zowe/core-for-zowe-sdk";
+
 import { ZoweExplorerApiRegister } from "./ZoweExplorerApiRegister";
 import { ZoweExplorerExtender } from "./ZoweExplorerExtender";
 import { Profiles } from "./Profiles";
 import { errorHandling, readConfigFromDisk } from "./utils/ProfilesUtils";
-import { CliProfileManager, ImperativeConfig } from "@zowe/imperative";
-import { getImperativeConfig } from "@zowe/cli";
 import { createDatasetTree } from "./dataset/DatasetTree";
 import { createJobsTree } from "./job/ZosJobsProvider";
 import { createUSSTree } from "./uss/USSTree";
 import { MvsCommandHandler } from "./command/MvsCommandHandler";
-import SpoolProvider from "./SpoolProvider";
-import * as nls from "vscode-nls";
+import { SpoolProvider } from "./SpoolProvider";
 import { TsoCommandHandler } from "./command/TsoCommandHandler";
 import { cleanTempDir, moveTempFolder, hideTempFolder } from "./utils/TempFolder";
 import { SettingsConfig } from "./utils/SettingsConfig";

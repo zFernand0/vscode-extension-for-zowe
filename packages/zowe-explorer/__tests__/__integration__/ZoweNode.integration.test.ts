@@ -9,15 +9,16 @@
  *                                                                                 *
  */
 
-import * as zowe from "@zowe/cli";
-import { IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg, Session } from "@zowe/imperative";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
-// tslint:disable-next-line:no-implicit-dependencies
 import * as expect from "expect";
-import * as vscode from "vscode";
-import { ZoweDatasetNode } from "../../src/dataset/ZoweDatasetNode";
 import * as testConst from "../../resources/testProfileData";
+import * as vscode from "vscode";
+
+import { IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg, Session } from "@zowe/imperative";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
+
+import { ZoweDatasetNode } from "../../src/dataset/ZoweDatasetNode";
 import { DS_SESSION_CONTEXT, DS_PDS_CONTEXT } from "../../src/globals";
 
 declare var it: any;
@@ -45,7 +46,7 @@ describe("ZoweNode Integration Tests", async () => {
         user: testProfile.profile.user,
         password: testProfile.profile.password,
     };
-    const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
+    const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
     ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
     const session = new Session(sessCfg);
     const sessNode = new ZoweDatasetNode(

@@ -9,14 +9,14 @@
  *                                                                                 *
  */
 
-import { ZoweDatasetNode } from "../../src/dataset/ZoweDatasetNode";
 import * as vscode from "vscode";
-import * as imperative from "@zowe/imperative";
 import * as globals from "../../src/globals";
+import { ZoweDatasetNode } from "../../src/dataset/ZoweDatasetNode";
 import { removeNodeFromArray } from "./shared";
 import { PersistenceSchemaEnum } from "@zowe/zowe-explorer-api";
+import { IProfileLoaded, Session } from "@zowe/imperative";
 
-export function createDatasetSessionNode(session: imperative.Session, profile: imperative.IProfileLoaded) {
+export function createDatasetSessionNode(session: Session, profile: IProfileLoaded) {
     const datasetNode = new ZoweDatasetNode(
         "sestest",
         vscode.TreeItemCollapsibleState.Expanded,

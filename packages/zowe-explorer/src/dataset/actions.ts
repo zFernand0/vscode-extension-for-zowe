@@ -12,7 +12,6 @@
 import * as dsUtils from "../dataset/utils";
 import * as vscode from "vscode";
 import * as fs from "fs";
-import * as zowe from "@zowe/cli";
 import * as globals from "../globals";
 import * as path from "path";
 import * as api from "@zowe/zowe-explorer-api";
@@ -26,7 +25,7 @@ import { ZoweDatasetNode } from "./ZoweDatasetNode";
 import * as contextually from "../shared/context";
 import { setFileSaved } from "../utils/workspace";
 import { UIViews } from "../shared/ui-views";
-import { IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
+import { CreateDataSetTypeEnum, CreateDefaults, IUploadOptions, IZosFilesResponse } from "@zowe/zos-files-for-zowe-sdk";
 
 // Set up localization
 import * as nls from "vscode-nls";
@@ -507,23 +506,23 @@ export function getDataSetTypeAndOptions(type: string) {
     let createOptions;
     switch (type) {
         case localize("createFile.dataSetBinary", "Data Set Binary"):
-            typeEnum = zowe.CreateDataSetTypeEnum.DATA_SET_BINARY;
+            typeEnum = CreateDataSetTypeEnum.DATA_SET_BINARY;
             createOptions = vscode.workspace.getConfiguration(globals.SETTINGS_DS_DEFAULT_BINARY);
             break;
         case localize("createFile.dataSetC", "Data Set C"):
-            typeEnum = zowe.CreateDataSetTypeEnum.DATA_SET_C;
+            typeEnum = CreateDataSetTypeEnum.DATA_SET_C;
             createOptions = vscode.workspace.getConfiguration(globals.SETTINGS_DS_DEFAULT_C);
             break;
         case localize("createFile.dataSetClassic", "Data Set Classic"):
-            typeEnum = zowe.CreateDataSetTypeEnum.DATA_SET_CLASSIC;
+            typeEnum = CreateDataSetTypeEnum.DATA_SET_CLASSIC;
             createOptions = vscode.workspace.getConfiguration(globals.SETTINGS_DS_DEFAULT_CLASSIC);
             break;
         case localize("createFile.dataSetPartitioned", "Data Set Partitioned"):
-            typeEnum = zowe.CreateDataSetTypeEnum.DATA_SET_PARTITIONED;
+            typeEnum = CreateDataSetTypeEnum.DATA_SET_PARTITIONED;
             createOptions = vscode.workspace.getConfiguration(globals.SETTINGS_DS_DEFAULT_PDS);
             break;
         case localize("createFile.dataSetSequential", "Data Set Sequential"):
-            typeEnum = zowe.CreateDataSetTypeEnum.DATA_SET_SEQUENTIAL;
+            typeEnum = CreateDataSetTypeEnum.DATA_SET_SEQUENTIAL;
             createOptions = vscode.workspace.getConfiguration(globals.SETTINGS_DS_DEFAULT_PS);
             break;
     }
@@ -611,7 +610,7 @@ export async function createFile(
             typeEnum = getDataSetTypeAndOptions(type).typeEnum;
             const cliDefaultsKey = globals.CreateDataSetTypeWithKeysEnum[typeEnum].replace("DATA_SET_", "");
 
-            propertiesFromDsType = zowe.CreateDefaults.DATA_SET[cliDefaultsKey];
+            propertiesFromDsType = CreateDefaults.DATA_SET[cliDefaultsKey];
             newDSProperties.forEach((property) => {
                 Object.keys(propertiesFromDsType).forEach((typeProperty) => {
                     if (typeProperty === property.key) {
@@ -1273,7 +1272,7 @@ export async function pasteMember(
 
         if (beforeProfileName === profileName) {
             if (memberName) {
-                const responseItem: zowe.IZosFilesResponse = await ZoweExplorerApiRegister.getMvsApi(
+                const responseItem: IZosFilesResponse = await ZoweExplorerApiRegister.getMvsApi(
                     node.getProfile()
                 ).allMembers(`${dataSetName}`);
                 if (

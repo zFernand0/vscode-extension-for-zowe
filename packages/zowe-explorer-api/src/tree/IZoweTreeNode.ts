@@ -11,7 +11,7 @@
 
 import * as vscode from "vscode";
 import { Session, IProfileLoaded } from "@zowe/imperative";
-import { IJob } from "@zowe/cli";
+import { IJob } from "@zowe/zos-jobs-for-zowe-sdk";
 import { IZoweTree } from "./IZoweTree";
 
 export type IZoweNodeType = IZoweDatasetTreeNode | IZoweUSSTreeNode | IZoweJobTreeNode;

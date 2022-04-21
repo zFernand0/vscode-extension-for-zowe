@@ -7,7 +7,14 @@
  *                                                                                 *
  * Copyright Contributors to the Zowe Project.                                     *
  *                                                                                 *
- */
+*/
+
+import * as vscode from "vscode";
+import * as path from "path";
+import * as os from "os";
+import * as fs from "fs";
+import * as globals from "./globals";
+import * as nls from "vscode-nls";
 
 import {
     IProfileLoaded,
@@ -23,13 +30,8 @@ import {
     Config,
     IConfig,
     ICommandProfileTypeConfiguration,
+    ProfileInfo,
 } from "@zowe/imperative";
-import * as PromiseQueue from "promise-queue";
-import * as vscode from "vscode";
-import * as zowe from "@zowe/cli";
-import * as path from "path";
-import * as os from "os";
-import * as fs from "fs";
 import {
     IZoweTree,
     IZoweNodeType,
@@ -45,6 +47,7 @@ import {
     IUrlValidator,
     ZoweVsCodeExtension,
 } from "@zowe/zowe-explorer-api";
+
 import {
     errorHandling,
     FilterDescriptor,
@@ -54,9 +57,8 @@ import {
     readConfigFromDisk,
 } from "./utils/ProfilesUtils";
 import { ZoweExplorerApiRegister } from "./ZoweExplorerApiRegister";
-import * as globals from "./globals";
-import * as nls from "vscode-nls";
 import { UIViews } from "./shared/ui-views";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
 
 // TODO: find a home for constants
 export const CONTEXT_PREFIX = "_";
@@ -587,7 +589,7 @@ export class Profiles extends ProfilesCache {
         }
 
         try {
-            const updSession = await zowe.ZosmfSession.createSessCfgFromArgs(updSchemaValues);
+            const updSession = await ZosmfSession.createSessCfgFromArgs(updSchemaValues);
             updSchemaValues.base64EncodedAuth = updSession.base64EncodedAuth;
             await this.updateProfile({
                 profile: updSchemaValues,
@@ -666,7 +668,7 @@ export class Profiles extends ProfilesCache {
                 config.api.layers.activate(user, global, rootPath);
             }
 
-            const impConfig: IImperativeConfig = zowe.getImperativeConfig();
+            const impConfig: IImperativeConfig = getImperativeConfig();
             const knownCliConfig: ICommandProfileTypeConfiguration[] = impConfig.profiles;
             // add extenders config info from global variable
             globals.EXTENDER_CONFIG.forEach((item) => {
@@ -1341,7 +1343,7 @@ export class Profiles extends ProfilesCache {
         await vscode.window.showTextDocument(document);
     }
 
-    private getProfileIcon(profInfo: zowe.imperative.ProfileInfo, name: string): string[] {
+    private getProfileIcon(profInfo: ProfileInfo, name: string): string[] {
         const prof = profInfo.getAllProfiles().find((p) => p.profName === name);
         const osLocInfo = profInfo.getOsLocInfo(prof);
         const ret: string[] = [];

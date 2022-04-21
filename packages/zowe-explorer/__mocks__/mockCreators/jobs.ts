@@ -12,12 +12,12 @@
 import { Job } from "../../src/job/ZoweJobNode";
 import * as vscode from "vscode";
 import * as globals from "../../src/globals";
-import * as zowe from "@zowe/cli";
-import * as imperative from "@zowe/imperative";
+import { IJobFile, IJob } from "@zowe/zos-jobs-for-zowe-sdk";
 import { removeNodeFromArray } from "./shared";
 import { PersistenceSchemaEnum } from "@zowe/zowe-explorer-api";
+import { IProfileLoaded, Session } from "@zowe/imperative";
 
-export function createIJobObject(): zowe.IJob {
+export function createIJobObject(): IJob {
     return {
         jobid: "JOB1234",
         jobname: "TESTJOB",
@@ -46,7 +46,7 @@ export function createIJobObject(): zowe.IJob {
     };
 }
 
-export function createIJobFile(): zowe.IJobFile {
+export function createIJobFile(): IJobFile {
     return {
         "byte-count": 128,
         "job-correlator": "correlator",
@@ -66,9 +66,9 @@ export function createIJobFile(): zowe.IJobFile {
 }
 
 export function createJobsTree(
-    session: imperative.Session,
-    iJob: zowe.IJob,
-    profile: imperative.IProfileLoaded,
+    session: Session,
+    iJob: IJob,
+    profile: IProfileLoaded,
     treeView: any
 ): any {
     const jobNode = new Job("jobtest", vscode.TreeItemCollapsibleState.Expanded, null, session, iJob, profile);
@@ -125,7 +125,7 @@ export function createJobsTree(
     return testJobsTree;
 }
 
-export function createJobSessionNode(session: imperative.Session, profile: imperative.IProfileLoaded) {
+export function createJobSessionNode(session: Session, profile: IProfileLoaded) {
     const jobSessionNode = new Job("sestest", vscode.TreeItemCollapsibleState.Collapsed, null, session, null, profile);
     jobSessionNode.contextValue = globals.JOBS_SESSION_CONTEXT;
 
@@ -140,7 +140,7 @@ export function createJobFavoritesNode() {
 }
 
 // Because the JobDetail class in ZosJobsProvider.ts is not exported:
-export class MockJobDetail implements zowe.IJob {
+export class MockJobDetail implements IJob {
     public jobid: string;
     public jobname: string;
     public subsystem: string;

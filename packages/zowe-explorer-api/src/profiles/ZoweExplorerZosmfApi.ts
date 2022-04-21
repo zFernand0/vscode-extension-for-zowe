@@ -9,7 +9,41 @@
  *                                                                                 *
  */
 
-import * as zowe from "@zowe/cli";
+import { Login, Logout } from "@zowe/core-for-zowe-sdk";
+import { IConsoleResponse, IssueCommand } from "@zowe/zos-console-for-zowe-sdk";
+import {
+    Copy,
+    Create,
+    CreateDataSetTypeEnum,
+    Delete,
+    Download,
+    HMigrate,
+    HRecall,
+    ICopyDatasetOptions,
+    ICreateDataSetOptions,
+    IDataSet,
+    IDeleteDatasetOptions,
+    IDownloadOptions,
+    IListOptions,
+    IUploadOptions,
+    IZosFilesResponse,
+    List,
+    Rename,
+    Upload,
+    Utilities,
+} from "@zowe/zos-files-for-zowe-sdk";
+import {
+    IDownloadAllSpoolContentParms,
+    DownloadJobs,
+    SubmitJobs,
+    DeleteJobs,
+    IJob,
+    GetJobs,
+    IJobFile,
+    IJobFeedback,
+} from "@zowe/zos-jobs-for-zowe-sdk";
+import { IIssueResponse, IssueTso, IStartTsoParms } from "@zowe/zos-tso-for-zowe-sdk";
+import { ZosmfSession, CheckStatus } from "@zowe/zosmf-for-zowe-sdk";
 import { Session, SessConstants, IProfileLoaded, ICommandArguments, ConnectionPropsForSessCfg } from "@zowe/imperative";
 import { ZoweExplorerApi } from "./ZoweExplorerApi";
 
@@ -30,7 +64,7 @@ class ZosmfApiCommon implements ZoweExplorerApi.ICommon {
     }
 
     public getSessionFromCommandArgument(cmdArgs: ICommandArguments): Session {
-        const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
+        const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
         ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
         const sessionToUse = new Session(sessCfg);
         return sessionToUse;
@@ -109,7 +143,7 @@ class ZosmfApiCommon implements ZoweExplorerApi.ICommon {
                 validateSession = this.getSessionFromCommandArgument(cmdArgs);
             }
 
-            const sessionStatus = await zowe.CheckStatus.getZosmfInfo(validateSession);
+            const sessionStatus = await CheckStatus.getZosmfInfo(validateSession);
 
             if (sessionStatus) {
                 return "active";
@@ -126,11 +160,11 @@ class ZosmfApiCommon implements ZoweExplorerApi.ICommon {
     }
 
     public login(session: Session): Promise<string> {
-        return zowe.Login.apimlLogin(session);
+        return Login.apimlLogin(session);
     }
 
     public logout(session: Session): Promise<void> {
-        return zowe.Logout.apimlLogout(session);
+        return Logout.apimlLogout(session);
     }
 }
 
@@ -139,16 +173,16 @@ class ZosmfApiCommon implements ZoweExplorerApi.ICommon {
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 export class ZosmfUssApi extends ZosmfApiCommon implements ZoweExplorerApi.IUss {
-    public async fileList(ussFilePath: string): Promise<zowe.IZosFilesResponse> {
-        return await zowe.List.fileList(this.getSession(), ussFilePath);
+    public async fileList(ussFilePath: string): Promise<IZosFilesResponse> {
+        return await List.fileList(this.getSession(), ussFilePath);
     }
 
     public async isFileTagBinOrAscii(ussFilePath: string): Promise<boolean> {
-        return await zowe.Utilities.isFileTagBinOrAscii(this.getSession(), ussFilePath);
+        return await Utilities.isFileTagBinOrAscii(this.getSession(), ussFilePath);
     }
 
-    public async getContents(inputFilePath: string, options: zowe.IDownloadOptions): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Download.ussFile(this.getSession(), inputFilePath, options);
+    public async getContents(inputFilePath: string, options: IDownloadOptions): Promise<IZosFilesResponse> {
+        return await Download.ussFile(this.getSession(), inputFilePath, options);
     }
 
     /**
@@ -162,7 +196,7 @@ export class ZosmfUssApi extends ZosmfApiCommon implements ZoweExplorerApi.IUss 
         localEncoding?: string,
         etag?: string,
         returnEtag?: boolean
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         return await this.putContent(inputFilePath, ussFilePath, {
             binary,
             localEncoding,
@@ -174,31 +208,31 @@ export class ZosmfUssApi extends ZosmfApiCommon implements ZoweExplorerApi.IUss 
     public async putContent(
         inputFilePath: string,
         ussFilePath: string,
-        options: zowe.IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Upload.fileToUssFile(this.getSession(), inputFilePath, ussFilePath, options);
+        options: IUploadOptions
+    ): Promise<IZosFilesResponse> {
+        return await Upload.fileToUssFile(this.getSession(), inputFilePath, ussFilePath, options);
     }
 
     public async uploadDirectory(
         inputDirectoryPath: string,
         ussDirectoryPath: string,
-        options?: zowe.IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Upload.dirToUSSDirRecursive(this.getSession(), inputDirectoryPath, ussDirectoryPath, options);
+        options?: IUploadOptions
+    ): Promise<IZosFilesResponse> {
+        return await Upload.dirToUSSDirRecursive(this.getSession(), inputDirectoryPath, ussDirectoryPath, options);
     }
 
-    public async create(ussPath: string, type: string, mode?: string): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Create.uss(this.getSession(), ussPath, type, mode);
+    public async create(ussPath: string, type: string, mode?: string): Promise<IZosFilesResponse> {
+        return await Create.uss(this.getSession(), ussPath, type, mode);
     }
 
-    public async delete(ussPath: string, recursive?: boolean): Promise<zowe.IZosFilesResponse> {
+    public async delete(ussPath: string, recursive?: boolean): Promise<IZosFilesResponse> {
         // handle zosmf api issue with file paths
         const fixedName = ussPath.startsWith("/") ? ussPath.substring(1) : ussPath;
-        return await zowe.Delete.ussFile(this.getSession(), fixedName, recursive);
+        return await Delete.ussFile(this.getSession(), fixedName, recursive);
     }
 
-    public async rename(currentUssPath: string, newUssPath: string): Promise<zowe.IZosFilesResponse> {
-        const result = await zowe.Utilities.renameUSSFile(this.getSession(), currentUssPath, newUssPath);
+    public async rename(currentUssPath: string, newUssPath: string): Promise<IZosFilesResponse> {
+        const result = await Utilities.renameUSSFile(this.getSession(), currentUssPath, newUssPath);
         return {
             success: true,
             commandResponse: null,
@@ -212,51 +246,48 @@ export class ZosmfUssApi extends ZosmfApiCommon implements ZoweExplorerApi.IUss 
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 export class ZosmfMvsApi extends ZosmfApiCommon implements ZoweExplorerApi.IMvs {
-    public async dataSet(filter: string, options?: zowe.IListOptions): Promise<zowe.IZosFilesResponse> {
-        return await zowe.List.dataSet(this.getSession(), filter, options);
+    public async dataSet(filter: string, options?: IListOptions): Promise<IZosFilesResponse> {
+        return await List.dataSet(this.getSession(), filter, options);
     }
 
-    public async allMembers(dataSetName: string, options?: zowe.IListOptions): Promise<zowe.IZosFilesResponse> {
-        return await zowe.List.allMembers(this.getSession(), dataSetName, options);
+    public async allMembers(dataSetName: string, options?: IListOptions): Promise<IZosFilesResponse> {
+        return await List.allMembers(this.getSession(), dataSetName, options);
     }
 
-    public async getContents(dataSetName: string, options?: zowe.IDownloadOptions): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Download.dataSet(this.getSession(), dataSetName, options);
+    public async getContents(dataSetName: string, options?: IDownloadOptions): Promise<IZosFilesResponse> {
+        return await Download.dataSet(this.getSession(), dataSetName, options);
     }
 
     public async putContents(
         inputFilePath: string,
         dataSetName: string,
-        options?: zowe.IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Upload.pathToDataSet(this.getSession(), inputFilePath, dataSetName, options);
+        options?: IUploadOptions
+    ): Promise<IZosFilesResponse> {
+        return await Upload.pathToDataSet(this.getSession(), inputFilePath, dataSetName, options);
     }
 
     public async createDataSet(
-        dataSetType: zowe.CreateDataSetTypeEnum,
+        dataSetType: CreateDataSetTypeEnum,
         dataSetName: string,
-        options?: Partial<zowe.ICreateDataSetOptions>
-    ): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Create.dataSet(this.getSession(), dataSetType, dataSetName, options);
+        options?: Partial<ICreateDataSetOptions>
+    ): Promise<IZosFilesResponse> {
+        return await Create.dataSet(this.getSession(), dataSetType, dataSetName, options);
     }
 
-    public async createDataSetMember(
-        dataSetName: string,
-        options?: zowe.IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Upload.bufferToDataSet(this.getSession(), Buffer.from(""), dataSetName, options);
+    public async createDataSetMember(dataSetName: string, options?: IUploadOptions): Promise<IZosFilesResponse> {
+        return await Upload.bufferToDataSet(this.getSession(), Buffer.from(""), dataSetName, options);
     }
 
-    public async allocateLikeDataSet(dataSetName: string, likeDataSetName: string): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Create.dataSetLike(this.getSession(), dataSetName, likeDataSetName);
+    public async allocateLikeDataSet(dataSetName: string, likeDataSetName: string): Promise<IZosFilesResponse> {
+        return await Create.dataSetLike(this.getSession(), dataSetName, likeDataSetName);
     }
 
     public async copyDataSetMember(
-        { dsn: fromDataSetName, member: fromMemberName }: zowe.IDataSet,
-        { dsn: toDataSetName, member: toMemberName }: zowe.IDataSet,
-        options?: zowe.ICopyDatasetOptions
-    ): Promise<zowe.IZosFilesResponse> {
-        let newOptions: zowe.ICopyDatasetOptions;
+        { dsn: fromDataSetName, member: fromMemberName }: IDataSet,
+        { dsn: toDataSetName, member: toMemberName }: IDataSet,
+        options?: ICopyDatasetOptions
+    ): Promise<IZosFilesResponse> {
+        let newOptions: ICopyDatasetOptions;
         if (options) {
             if (options["from-dataset"]) {
                 newOptions = options;
@@ -267,37 +298,34 @@ export class ZosmfMvsApi extends ZosmfApiCommon implements ZoweExplorerApi.IMvs 
                 };
             }
         } else {
-            // If we decide to match 1:1 the Zowe.Copy.dataSet implementation, we will need to break the interface definition in the ZoweExploreApi
+            // If we decide to match 1:1 the Copy.dataSet implementation, we will need to break the interface definition in the ZoweExploreApi
             newOptions = { "from-dataset": { dsn: fromDataSetName, member: fromMemberName } };
         }
-        return await zowe.Copy.dataSet(this.getSession(), { dsn: toDataSetName, member: toMemberName }, newOptions);
+        return await Copy.dataSet(this.getSession(), { dsn: toDataSetName, member: toMemberName }, newOptions);
     }
 
-    public async renameDataSet(currentDataSetName: string, newDataSetName: string): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Rename.dataSet(this.getSession(), currentDataSetName, newDataSetName);
+    public async renameDataSet(currentDataSetName: string, newDataSetName: string): Promise<IZosFilesResponse> {
+        return await Rename.dataSet(this.getSession(), currentDataSetName, newDataSetName);
     }
 
     public async renameDataSetMember(
         dataSetName: string,
         oldMemberName: string,
         newMemberName: string
-    ): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Rename.dataSetMember(this.getSession(), dataSetName, oldMemberName, newMemberName);
+    ): Promise<IZosFilesResponse> {
+        return await Rename.dataSetMember(this.getSession(), dataSetName, oldMemberName, newMemberName);
     }
 
-    public async hMigrateDataSet(dataSetName: string): Promise<zowe.IZosFilesResponse> {
-        return await zowe.HMigrate.dataSet(this.getSession(), dataSetName);
+    public async hMigrateDataSet(dataSetName: string): Promise<IZosFilesResponse> {
+        return await HMigrate.dataSet(this.getSession(), dataSetName);
     }
 
-    public async hRecallDataSet(dataSetName: string): Promise<zowe.IZosFilesResponse> {
-        return await zowe.HRecall.dataSet(this.getSession(), dataSetName);
+    public async hRecallDataSet(dataSetName: string): Promise<IZosFilesResponse> {
+        return await HRecall.dataSet(this.getSession(), dataSetName);
     }
 
-    public async deleteDataSet(
-        dataSetName: string,
-        options?: zowe.IDeleteDatasetOptions
-    ): Promise<zowe.IZosFilesResponse> {
-        return await zowe.Delete.dataSet(this.getSession(), dataSetName, options);
+    public async deleteDataSet(dataSetName: string, options?: IDeleteDatasetOptions): Promise<IZosFilesResponse> {
+        return await Delete.dataSet(this.getSession(), dataSetName, options);
     }
 }
 
@@ -306,48 +334,44 @@ export class ZosmfMvsApi extends ZosmfApiCommon implements ZoweExplorerApi.IMvs 
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 export class ZosmfJesApi extends ZosmfApiCommon implements ZoweExplorerApi.IJes {
-    public async getJobsByOwnerAndPrefix(owner: string, prefix: string): Promise<zowe.IJob[]> {
-        return await zowe.GetJobs.getJobsByOwnerAndPrefix(this.getSession(), owner, prefix);
+    public async getJobsByOwnerAndPrefix(owner: string, prefix: string): Promise<IJob[]> {
+        return await GetJobs.getJobsByOwnerAndPrefix(this.getSession(), owner, prefix);
     }
 
-    public async getJob(jobid: string): Promise<zowe.IJob> {
-        return await zowe.GetJobs.getJob(this.getSession(), jobid);
+    public async getJob(jobid: string): Promise<IJob> {
+        return await GetJobs.getJob(this.getSession(), jobid);
     }
 
-    public async getSpoolFiles(jobname: string, jobid: string): Promise<zowe.IJobFile[]> {
-        return await zowe.GetJobs.getSpoolFiles(this.getSession(), jobname, jobid);
+    public async getSpoolFiles(jobname: string, jobid: string): Promise<IJobFile[]> {
+        return await GetJobs.getSpoolFiles(this.getSession(), jobname, jobid);
     }
 
-    public async downloadSpoolContent(parms: zowe.IDownloadAllSpoolContentParms): Promise<void> {
-        return await zowe.DownloadJobs.downloadAllSpoolContentCommon(this.getSession(), parms);
+    public async downloadSpoolContent(parms: IDownloadAllSpoolContentParms): Promise<void> {
+        return await DownloadJobs.downloadAllSpoolContentCommon(this.getSession(), parms);
     }
 
     public async getSpoolContentById(jobname: string, jobid: string, spoolId: number): Promise<string> {
-        return await zowe.GetJobs.getSpoolContentById(this.getSession(), jobname, jobid, spoolId);
+        return await GetJobs.getSpoolContentById(this.getSession(), jobname, jobid, spoolId);
     }
 
-    public async getJclForJob(job: zowe.IJob): Promise<string> {
-        return await zowe.GetJobs.getJclForJob(this.getSession(), job);
+    public async getJclForJob(job: IJob): Promise<string> {
+        return await GetJobs.getJclForJob(this.getSession(), job);
     }
 
-    public async submitJcl(
-        jcl: string,
-        internalReaderRecfm?: string,
-        internalReaderLrecl?: string
-    ): Promise<zowe.IJob> {
-        return await zowe.SubmitJobs.submitJcl(this.getSession(), jcl, internalReaderRecfm, internalReaderLrecl);
+    public async submitJcl(jcl: string, internalReaderRecfm?: string, internalReaderLrecl?: string): Promise<IJob> {
+        return await SubmitJobs.submitJcl(this.getSession(), jcl, internalReaderRecfm, internalReaderLrecl);
     }
 
-    public async submitJob(jobDataSet: string): Promise<zowe.IJob> {
-        return await zowe.SubmitJobs.submitJob(this.getSession(), jobDataSet);
+    public async submitJob(jobDataSet: string): Promise<IJob> {
+        return await SubmitJobs.submitJob(this.getSession(), jobDataSet);
     }
 
     public async deleteJob(jobname: string, jobid: string): Promise<void> {
-        await zowe.DeleteJobs.deleteJob(this.getSession(), jobname, jobid);
+        await DeleteJobs.deleteJob(this.getSession(), jobname, jobid);
     }
 
-    public async deleteJobWithInfo(jobname: string, jobid: string): Promise<undefined | zowe.IJobFeedback> {
-        return await zowe.DeleteJobs.deleteJob(this.getSession(), jobname, jobid);
+    public async deleteJobWithInfo(jobname: string, jobid: string): Promise<undefined | IJobFeedback> {
+        return await DeleteJobs.deleteJob(this.getSession(), jobname, jobid);
     }
 }
 
@@ -356,15 +380,15 @@ export class ZosmfJesApi extends ZosmfApiCommon implements ZoweExplorerApi.IJes 
  */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 export class ZosmfCommandApi extends ZosmfApiCommon implements ZoweExplorerApi.ICommand {
-    public async issueTsoCommand(command: string, acctNum: string): Promise<zowe.IIssueResponse> {
-        return await zowe.IssueTso.issueTsoCommand(this.getSession(), acctNum, command);
+    public async issueTsoCommand(command: string, acctNum: string): Promise<IIssueResponse> {
+        return await IssueTso.issueTsoCommand(this.getSession(), acctNum, command);
     }
 
-    public async issueTsoCommandWithParms(command: string, parms: zowe.IStartTsoParms): Promise<zowe.IIssueResponse> {
-        return await zowe.IssueTso.issueTsoCommand(this.getSession(), parms.account, command, parms);
+    public async issueTsoCommandWithParms(command: string, parms: IStartTsoParms): Promise<IIssueResponse> {
+        return await IssueTso.issueTsoCommand(this.getSession(), parms.account, command, parms);
     }
 
-    public async issueMvsCommand(command: string): Promise<zowe.IConsoleResponse> {
-        return await zowe.IssueCommand.issueSimple(this.getSession(), command);
+    public async issueMvsCommand(command: string): Promise<IConsoleResponse> {
+        return await IssueCommand.issueSimple(this.getSession(), command);
     }
 }

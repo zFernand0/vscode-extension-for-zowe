@@ -9,7 +9,6 @@
  *                                                                                 *
  */
 
-import * as zowe from "@zowe/cli";
 import * as globals from "../globals";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -25,6 +24,7 @@ import { getIconByNode } from "../generators/icons/index";
 import * as contextually from "../shared/context";
 import { closeOpenedTextFile } from "../utils/workspace";
 import * as nls from "vscode-nls";
+import { IZosFilesResponse } from "@zowe/zos-files-for-zowe-sdk";
 
 // Set up localization
 nls.config({
@@ -188,7 +188,7 @@ export class ZoweUSSNode extends ZoweTreeNode implements IZoweUSSTreeNode {
         }
 
         // Gets the directories from the fullPath and displays any thrown errors
-        const responses: zowe.IZosFilesResponse[] = [];
+        const responses: IZosFilesResponse[] = [];
         const sessNode = this.getSessionNode();
         try {
             responses.push(

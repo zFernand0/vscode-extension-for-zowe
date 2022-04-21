@@ -9,7 +9,6 @@
  *                                                                                 *
  */
 
-import * as zowe from "@zowe/cli";
 import * as vscode from "vscode";
 import * as globals from "../globals";
 import { Session, IProfileLoaded } from "@zowe/imperative";
@@ -20,6 +19,8 @@ import { getIconByNode } from "../generators/icons";
 import * as contextually from "../shared/context";
 import * as nls from "vscode-nls";
 import { Profiles } from "../Profiles";
+import { IZosFilesResponse, IListOptions } from "@zowe/zos-files-for-zowe-sdk";
+
 // Set up localization
 nls.config({
     messageFormat: nls.MessageFormat.bundle,
@@ -117,7 +118,7 @@ export class ZoweDatasetNode extends ZoweTreeNode implements IZoweDatasetTreeNod
         }
 
         // Gets the datasets from the pattern or members of the dataset and displays any thrown errors
-        let responses: zowe.IZosFilesResponse[] = [];
+        let responses: IZosFilesResponse[] = [];
         responses = await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -259,11 +260,11 @@ export class ZoweDatasetNode extends ZoweTreeNode implements IZoweDatasetTreeNod
         this.etag = etagValue;
     }
 
-    private async getDatasets(): Promise<zowe.IZosFilesResponse[]> {
+    private async getDatasets(): Promise<IZosFilesResponse[]> {
         const sessNode = this.getSessionNode();
-        const responses: zowe.IZosFilesResponse[] = [];
+        const responses: IZosFilesResponse[] = [];
         try {
-            const options: zowe.IListOptions = {};
+            const options: IListOptions = {};
             options.attributes = true;
             let label: string;
             if (contextually.isSessionNotFav(this)) {

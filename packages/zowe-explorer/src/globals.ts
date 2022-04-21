@@ -10,14 +10,15 @@
  */
 
 import * as path from "path";
-import { Logger, ICommandProfileTypeConfiguration } from "@zowe/imperative";
 import * as vscode from "vscode";
 import * as loggerConfig from "../log4jsconfig.json";
+import * as nls from "vscode-nls";
+import { ProfilesCache } from "@zowe/zowe-explorer-api";
+
+import { Logger, ICommandProfileTypeConfiguration } from "@zowe/imperative";
+import { getZoweDir } from "@zowe/core-for-zowe-sdk";
 
 // Set up localization
-import * as nls from "vscode-nls";
-import { getZoweDir, ProfilesCache } from "@zowe/zowe-explorer-api";
-
 nls.config({
     messageFormat: nls.MessageFormat.bundle,
     bundleFormat: nls.BundleFormat.standalone,

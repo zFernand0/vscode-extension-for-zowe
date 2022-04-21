@@ -10,18 +10,19 @@
  */
 
 // tslint:disable:no-magic-numbers
-import * as zowe from "@zowe/cli";
-import { IProfileLoaded, ICommandArguments, Session, ConnectionPropsForSessCfg } from "@zowe/imperative";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
+import * as globals from "../../../src/globals";
+import * as refreshActions from "../../../src/shared/refresh";
 import * as sinon from "sinon";
 import * as testConst from "../../../resources/testProfileData";
 import * as vscode from "vscode";
+
+import { IProfileLoaded, ICommandArguments, Session, ConnectionPropsForSessCfg } from "@zowe/imperative";
+import { ZosmfSession } from "@zowe/zosmf-for-zowe-sdk";
+
 import { ZoweDatasetNode } from "../../../src/dataset/ZoweDatasetNode";
 import { DatasetTree } from "../../../src/dataset/DatasetTree";
-import * as dsActions from "../../../src/dataset/actions";
-import * as refreshActions from "../../../src/shared/refresh";
-import * as globals from "../../../src/globals";
 
 const TIMEOUT = 45000;
 declare var it: Mocha.ITestDefinition;
@@ -49,7 +50,7 @@ describe("dsNodeActions integration test", async () => {
         user: testProfile.profile.user,
         password: testProfile.profile.password,
     };
-    const sessCfg = zowe.ZosmfSession.createSessCfgFromArgs(cmdArgs);
+    const sessCfg = ZosmfSession.createSessCfgFromArgs(cmdArgs);
     ConnectionPropsForSessCfg.resolveSessCfgProps(sessCfg, cmdArgs);
     const session = new Session(sessCfg);
     const sessionNode = new ZoweDatasetNode(

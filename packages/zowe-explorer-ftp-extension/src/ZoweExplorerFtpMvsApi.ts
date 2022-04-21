@@ -12,23 +12,21 @@
 import * as fs from "fs";
 import * as crypto from "crypto";
 import * as tmp from "tmp";
-import * as zowe from "@zowe/cli";
-import * as imperative from "@zowe/imperative";
 import * as path from "path";
 import * as vscode from "vscode";
 
-import { CreateDataSetTypeEnum, IUploadOptions } from "@zowe/zos-files-for-zowe-sdk";
+import { IO } from "@zowe/imperative";
 import { MessageSeverityEnum, ZoweExplorerApi, ZoweVsCodeExtension } from "@zowe/zowe-explorer-api";
 import { DataSetUtils, TRANSFER_TYPE_ASCII, TRANSFER_TYPE_BINARY } from "@zowe/zos-ftp-for-zowe-cli";
 import { AbstractFtpApi } from "./ZoweExplorerAbstractFtpApi";
 import { ZoweLogger } from "./ZoweExplorerFtpUtils";
-
+import { CreateDataSetTypeEnum, ICreateDataSetOptions, IDataSet, IDeleteDatasetOptions, IDownloadOptions, IListOptions, IUploadOptions, IZosFilesResponse } from "@zowe/zos-files-for-zowe-sdk";
 // The Zowe FTP CLI plugin is written and uses mostly JavaScript, so relax the rules here.
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
-    public async dataSet(filter: string, options?: zowe.IListOptions): Promise<zowe.IZosFilesResponse> {
+    public async dataSet(filter: string, options?: IListOptions): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {
@@ -55,7 +53,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         }
     }
 
-    public async allMembers(dataSetName: string, options?: zowe.IListOptions): Promise<zowe.IZosFilesResponse> {
+    public async allMembers(dataSetName: string, options?: IListOptions): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {
@@ -78,7 +76,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         }
     }
 
-    public async getContents(dataSetName: string, options: zowe.IDownloadOptions): Promise<zowe.IZosFilesResponse> {
+    public async getContents(dataSetName: string, options: IDownloadOptions): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         const targetFile = options.file;
         const transferOptions = {
@@ -89,7 +87,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         try {
             connection = await this.ftpClient(this.checkedProfile());
             if (connection && targetFile) {
-                imperative.IO.createDirsSyncFromFilePath(targetFile);
+                IO.createDirsSyncFromFilePath(targetFile);
                 await DataSetUtils.downloadDataSet(connection, dataSetName, transferOptions);
                 result.success = true;
                 result.commandResponse = "";
@@ -109,7 +107,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         inputFilePath: string,
         dataSetName: string,
         options: IUploadOptions
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         const transferOptions = {
             transferType: options.binary ? TRANSFER_TYPE_BINARY : TRANSFER_TYPE_ASCII,
             localFile: inputFilePath,
@@ -188,8 +186,8 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
     public async createDataSet(
         dataSetType: CreateDataSetTypeEnum,
         dataSetName: string,
-        options?: Partial<zowe.ICreateDataSetOptions>
-    ): Promise<zowe.IZosFilesResponse> {
+        options?: Partial<ICreateDataSetOptions>
+    ): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         const dcbList = [];
         if (options?.alcunit) {
@@ -242,7 +240,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         }
     }
 
-    public async createDataSetMember(dataSetName: string, options?: IUploadOptions): Promise<zowe.IZosFilesResponse> {
+    public async createDataSetMember(dataSetName: string, options?: IUploadOptions): Promise<IZosFilesResponse> {
         const transferOptions = {
             transferType: options ? TRANSFER_TYPE_BINARY : TRANSFER_TYPE_ASCII,
             content: "",
@@ -265,7 +263,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         }
     }
 
-    public allocateLikeDataSet(dataSetName: string, likeDataSetName: string): Promise<zowe.IZosFilesResponse> {
+    public allocateLikeDataSet(dataSetName: string, likeDataSetName: string): Promise<IZosFilesResponse> {
         ZoweVsCodeExtension.showVsCodeMessage(
             "Allocate like dataset is not supported in ftp extension.",
             MessageSeverityEnum.ERROR,
@@ -275,10 +273,10 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
     }
 
     public copyDataSetMember(
-        { dsn: fromDataSetName, member: fromMemberName }: zowe.IDataSet,
-        { dsn: toDataSetName, member: toMemberName }: zowe.IDataSet,
+        { dsn: fromDataSetName, member: fromMemberName }: IDataSet,
+        { dsn: toDataSetName, member: toMemberName }: IDataSet,
         options?: { replace?: boolean }
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         ZoweVsCodeExtension.showVsCodeMessage(
             "Copy dataset is not supported in ftp extension.",
             MessageSeverityEnum.ERROR,
@@ -287,7 +285,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         throw new Error();
     }
 
-    public async renameDataSet(currentDataSetName: string, newDataSetName: string): Promise<zowe.IZosFilesResponse> {
+    public async renameDataSet(currentDataSetName: string, newDataSetName: string): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {
@@ -310,7 +308,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         dataSetName: string,
         currentMemberName: string,
         newMemberName: string
-    ): Promise<zowe.IZosFilesResponse> {
+    ): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         const currentName = dataSetName + "(" + currentMemberName + ")";
         const newName = dataSetName + "(" + newMemberName + ")";
@@ -331,7 +329,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         }
     }
 
-    public hMigrateDataSet(dataSetName: string): Promise<zowe.IZosFilesResponse> {
+    public hMigrateDataSet(dataSetName: string): Promise<IZosFilesResponse> {
         ZoweVsCodeExtension.showVsCodeMessage(
             "Migrate dataset is not supported in ftp extension.",
             MessageSeverityEnum.ERROR,
@@ -340,7 +338,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         throw new Error();
     }
 
-    public hRecallDataSet(dataSetName: string): Promise<zowe.IZosFilesResponse> {
+    public hRecallDataSet(dataSetName: string): Promise<IZosFilesResponse> {
         ZoweVsCodeExtension.showVsCodeMessage(
             "Recall dataset is not supported in ftp extension.",
             MessageSeverityEnum.ERROR,
@@ -350,8 +348,8 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
     }
     public async deleteDataSet(
         dataSetName: string,
-        options?: zowe.IDeleteDatasetOptions
-    ): Promise<zowe.IZosFilesResponse> {
+        options?: IDeleteDatasetOptions
+    ): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {
@@ -372,7 +370,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
 
     private async getContentsTag(dataSetName: string): Promise<string> {
         const tmpFileName = tmp.tmpNameSync();
-        const options: zowe.IDownloadOptions = {
+        const options: IDownloadOptions = {
             binary: false,
             file: tmpFileName,
         };
@@ -380,7 +378,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         const etag: string = loadResult.apiResponse.etag;
         return etag;
     }
-    private getDefaultResponse(): zowe.IZosFilesResponse {
+    private getDefaultResponse(): IZosFilesResponse {
         return {
             success: false,
             commandResponse: "Could not get a valid FTP connection.",

@@ -12,7 +12,7 @@
 import * as path from "path";
 import * as os from "os";
 import { Session } from "../Session";
-import { IListOptions } from "@zowe/cli";
+import { IListOptions } from "@zowe/zos-files-for-zowe-sdk";
 import * as imperative from "./imperative";
 
 export function getZoweDir(): string {
