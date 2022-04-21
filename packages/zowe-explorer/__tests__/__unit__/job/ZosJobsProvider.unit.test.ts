@@ -33,6 +33,7 @@ import {
     createInstanceOfProfile,
     createISessionWithoutCredentials,
     createTreeView,
+    createInstanceOfProfileInfo,
 } from "../../../__mocks__/mockCreators/shared";
 import { getIconByNode } from "../../../src/generators/icons";
 import { createJesApi } from "../../../__mocks__/mockCreators/api";
@@ -430,10 +431,8 @@ describe("ZosJobsProvider unit tests - Function loadProfilesForFavorites", () =>
                     getBaseProfile: jest.fn(() => {
                         return blockMocks.imperativeProfile;
                     }),
-                    getCombinedProfile: jest.fn(() => {
-                        return blockMocks.imperativeProfile;
-                    }),
                     validProfile: ValidProfileEnum.VALID,
+                    getProfileInfo: jest.fn(() => createInstanceOfProfileInfo()),
                 };
             }),
         });
@@ -477,9 +476,7 @@ describe("ZosJobsProvider unit tests - Function loadProfilesForFavorites", () =>
                     getBaseProfile: jest.fn(() => {
                         return blockMocks.imperativeProfile;
                     }),
-                    getCombinedProfile: jest.fn(() => {
-                        return blockMocks.imperativeProfile;
-                    }),
+                    getProfileInfo: jest.fn(() => createInstanceOfProfileInfo()),
                 };
             }),
         });

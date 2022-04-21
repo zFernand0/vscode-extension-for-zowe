@@ -75,6 +75,7 @@ async function createGlobalMocks() {
         testUSSNode: null,
         testTree: null,
         profilesForValidation: { status: "active", name: "fake" },
+        mockProfilesCache: new ProfilesCache(Logger.getAppLogger()),
     };
 
     globalMocks.mockTextDocuments.push(globalMocks.mockTextDocumentDirty);
@@ -86,7 +87,6 @@ async function createGlobalMocks() {
     globalMocks.mockProfilesInstance = createInstanceOfProfile(globalMocks.testProfile);
     globalMocks.mockProfilesInstance.getBaseProfile.mockResolvedValue(globalMocks.testBaseProfile);
     globalMocks.mockProfilesInstance.loadNamedProfile.mockReturnValue(globalMocks.testProfile);
-    globalMocks.mockProfilesInstance.getCombinedProfile.mockReturnValue(globalMocks.testCombinedProfile);
     globalMocks.mockProfilesInstance.allProfiles = [
         globalMocks.testProfile,
         { name: "firstName" },
@@ -157,12 +157,8 @@ async function createGlobalMocks() {
     globalMocks.testTree.mSessionNodes.push(ussSessionTestNode);
     globalMocks.testTree.addSearchHistory("/u/myuser");
 
-    Object.defineProperty(ProfilesCache, "getConfigInstance", {
-        value: jest.fn(() => {
-            return {
-                usingTeamConfig: false,
-            };
-        }),
+    Object.defineProperty(globalMocks.mockProfilesCache, "getProfileInfo", {
+        value: jest.fn().mockReturnValue({ usingTeamConfig: false }),
     });
 
     return globalMocks;
@@ -1361,21 +1357,6 @@ describe("USSTree Unit Tests - Function USSTree.addSingleSession()", () => {
         await globalMocks.testTree.addSingleSession(globalMocks.testProfile);
 
         expect(globalMocks.testTree.mSessionNodes[1].session.ISession.tokenValue).toEqual("testTokenValue");
-    });
-
-    it("Tests if addSingleSession throws an error if  getCombinedProfile fails", async () => {
-        const globalMocks = await createGlobalMocks();
-
-        jest.spyOn(globalMocks.mockProfilesInstance, "getCombinedProfile").mockRejectedValue("Test error!");
-
-        let error;
-        try {
-            await globalMocks.testTree.addSingleSession(globalMocks.testProfile);
-        } catch (err) {
-            error = err;
-        }
-
-        expect(error).toEqual("Test error!");
     });
 
     it("Tests that addSingleSession doesn't add the session again, if it was already added", async () => {

@@ -26,12 +26,13 @@ import {
     ProfilesCache,
 } from "@zowe/zowe-explorer-api";
 import { Profiles } from "./Profiles";
-import * as nls from "vscode-nls";
+import { ZoweExplorerApiRegister } from "./ZoweExplorerApiRegister";
 import { getProfileInfo, getProfile } from "./utils/ProfilesUtils";
 
 // Set up localization
-nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
-const localize: nls.LocalizeFunc = nls.loadMessageBundle();
+// import * as nls from "vscode-nls";
+// nls.config({ messageFormat: nls.MessageFormat.bundle, bundleFormat: nls.BundleFormat.standalone })();
+// const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
 /**
  * The Zowe Explorer API Register singleton that gets exposed to other VS Code
@@ -97,7 +98,7 @@ export class ZoweExplorerExtender implements ZoweExplorerApi.IApiExplorerExtende
             envVariablePrefix: "ZOWE",
         };
         // const mProfileInfo = await getProfileInfo(globals.ISTHEIA);
-        let mProfileInfo = await ProfilesCache.getConfigInstance();
+        let mProfileInfo = await globals.PROFILESCACHE.getProfileInfo();
         if (!mProfileInfo) {
             mProfileInfo = await getProfileInfo(globals.ISTHEIA);
         }
@@ -117,7 +118,9 @@ export class ZoweExplorerExtender implements ZoweExplorerApi.IApiExplorerExtende
         });
 
         // sequentially reload the internal profiles cache to satisfy all the newly added profile types
-        await Profiles.sequentialReload(ZoweExplorerExtender.refreshProfilesQueue);
+        await ZoweExplorerExtender.refreshProfilesQueue.add(async (): Promise<void> => {
+            await Profiles.getInstance().refresh(ZoweExplorerApiRegister.getInstance());
+        });
     }
 
     /**
@@ -152,8 +155,10 @@ export class ZoweExplorerExtender implements ZoweExplorerApi.IApiExplorerExtende
      */
     public async reloadProfiles(profileType?: string): Promise<void> {
         // sequentially reload the internal profiles cache to satisfy all the newly added profile types
-        await Profiles.sequentialReload(ZoweExplorerExtender.refreshProfilesQueue);
-
+        await ZoweExplorerExtender.refreshProfilesQueue.add(async (): Promise<void> => {
+            // eslint-disable-next-line no-return-await
+            await Profiles.getInstance().refresh(ZoweExplorerApiRegister.getInstance());
+        });
         // profileType is used to load a default extender profile if no other profiles are populating the trees
         this.datasetProvider?.addSession(undefined, profileType);
         this.ussFileProvider?.addSession(undefined, profileType);

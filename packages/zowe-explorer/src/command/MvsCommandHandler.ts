@@ -102,19 +102,6 @@ export class MvsCommandHandler extends ZoweCommandProvider {
                 }
                 profile = allProfiles.filter((temprofile) => temprofile.name === sesName)[0];
                 if (!node) {
-                    // If baseProfile exists, combine that information first
-                    const baseProfile = Profiles.getInstance().getBaseProfile();
-                    if (baseProfile) {
-                        try {
-                            const combinedProfile = await Profiles.getInstance().getCombinedProfile(
-                                profile,
-                                baseProfile
-                            );
-                            profile = combinedProfile;
-                        } catch (error) {
-                            throw error;
-                        }
-                    }
                     await Profiles.getInstance().checkCurrentProfile(profile);
                 }
                 if (Profiles.getInstance().validProfile !== ValidProfileEnum.INVALID) {
@@ -167,7 +154,7 @@ export class MvsCommandHandler extends ZoweCommandProvider {
             const createPick = new FilterDescriptor(MvsCommandHandler.defaultDialogText);
             const items: vscode.QuickPickItem[] = this.history
                 .getSearchHistory()
-                .map((element) => new FilterItem(element));
+                .map((element) => new FilterItem({ text: element }));
             if (globals.ISTHEIA) {
                 const options1: vscode.QuickPickOptions = {
                     placeHolder:

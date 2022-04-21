@@ -12,7 +12,6 @@
 import {
     IProfileLoaded,
     Logger,
-    ICommandArguments,
     Session,
     SessConstants,
     IUpdateProfile,
@@ -74,7 +73,7 @@ let InputBoxOptions: vscode.InputBoxOptions;
 export class Profiles extends ProfilesCache {
     // Processing stops if there are no profiles detected
     public static async createInstance(log: Logger): Promise<Profiles> {
-        Profiles.loader = new Profiles(log);
+        Profiles.loader = new Profiles(log, vscode.workspace.workspaceFolders?.[0].uri.fsPath);
         await Profiles.loader.refresh(ZoweExplorerApiRegister.getInstance());
         return Profiles.loader;
     }
@@ -83,29 +82,15 @@ export class Profiles extends ProfilesCache {
         return Profiles.loader;
     }
 
-    /**
-     * Sequentially reload the internal profiles cache to satisfy all the newly added profile types
-     * @param refreshProfilesQueue Queue to add the promise to refresh
-     */
-     public static async sequentialReload(refreshProfilesQueue: PromiseQueue) {
-        // sequentially reload the internal profiles cache to satisfy all the newly added profile types
-        await refreshProfilesQueue.add(
-            async (): Promise<void> => {
-                // eslint-disable-next-line no-return-await
-                await Profiles.getInstance().refresh(ZoweExplorerApiRegister.getInstance());
-            }
-        );
-    }
-
-    private static loader: Profiles;
+    protected static loader: Profiles;
 
     public loadedProfile: IProfileLoaded;
     public validProfile: ValidProfileEnum = ValidProfileEnum.INVALID;
     private dsSchema: string = globals.SETTINGS_DS_HISTORY;
     private ussSchema: string = globals.SETTINGS_USS_HISTORY;
     private jobsSchema: string = globals.SETTINGS_JOBS_HISTORY;
-    public constructor(log: Logger) {
-        super(log);
+    public constructor(log: Logger, cwd?: string) {
+        super(log, cwd);
     }
 
     public async checkCurrentProfile(theProfile: IProfileLoaded) {
@@ -307,16 +292,22 @@ export class Profiles extends ProfilesCache {
                 return jesProfileTypes.includes(profile.type);
             }
         });
-        if (profileNamesList) {
-            profileNamesList = profileNamesList.filter(
-                (profileName) =>
-                    // Find all cases where a profile is not already displayed
-                    !zoweFileProvider.mSessionNodes.find((sessionNode) => sessionNode.getProfileName() === profileName)
-            );
-        }
+        profileNamesList = profileNamesList.filter(
+            (profileName) =>
+                // Find all cases where a profile is not already displayed
+                !zoweFileProvider.mSessionNodes.find((sessionNode) => sessionNode.getProfileName() === profileName)
+        );
+
+        // TODO(zFernand0): Include conflicting profiles
+
         const createPick = new FilterDescriptor("\uFF0B " + createNewProfile);
         const configPick = new FilterDescriptor("\uFF0B " + createNewConfig);
-        const items: vscode.QuickPickItem[] = profileNamesList.map((element) => new FilterItem(element));
+        const items: vscode.QuickPickItem[] = [];
+        const mProfileInfo = await this.getProfileInfo();
+
+        for (const pName of profileNamesList) {
+            items.push(new FilterItem({ text: pName, icon: this.getProfileIcon(mProfileInfo, pName)[0] }));
+        }
         const quickpick = vscode.window.createQuickPick();
         switch (zoweFileProvider.getTreeType()) {
             case PersistenceSchemaEnum.Dataset:
@@ -373,7 +364,8 @@ export class Profiles extends ProfilesCache {
             if (choice instanceof FilterDescriptor) {
                 chosenProfile = "";
             } else {
-                chosenProfile = choice.label;
+                // remove any icons from the label
+                chosenProfile = choice.label.replace(/\$\(.*\)\s/g, "");
             }
         }
 
@@ -383,10 +375,10 @@ export class Profiles extends ProfilesCache {
         }
 
         if (chosenProfile === "") {
-            const config = ProfilesCache.getConfigInstance();
+            const config = await this.getProfileInfo();
             if (config.usingTeamConfig) {
                 const profiles = config.getAllProfiles();
-                const currentProfile = this.getProfileFromConfig(profiles[0].profName);
+                const currentProfile = await this.getProfileFromConfig(profiles[0].profName);
                 const filePath = currentProfile.profLoc.osLoc[0];
                 await this.openConfigFile(filePath);
                 return;
@@ -448,13 +440,14 @@ export class Profiles extends ProfilesCache {
     }
 
     public async editSession(profileLoaded: IProfileLoaded, profileName: string): Promise<any | undefined> {
-        if (ProfilesCache.getConfigInstance().usingTeamConfig) {
-            const currentProfile = this.getProfileFromConfig(profileLoaded.name);
+        if ((await this.getProfileInfo()).usingTeamConfig) {
+            const currentProfile = await this.getProfileFromConfig(profileLoaded.name);
             const filePath = currentProfile.profLoc.osLoc[0];
             await this.openConfigFile(filePath);
             return;
         }
-        const editSession = profileLoaded.profile;
+        // use direct load since merging was done previously during initialization
+        const editSession = (await this.directLoad(profileLoaded.type, profileLoaded.name)).profile;
         const editURL = editSession.host + ":" + editSession.port;
         const editUser = editSession.user;
         const editPass = editSession.password;
@@ -668,7 +661,7 @@ export class Profiles extends ProfilesCache {
                     global = false;
                 }
             }
-            const config = await Config.load("zowe", { projectDir: fs.realpathSync(rootPath) });
+            const config = await Config.load("zowe", { projectDir: fs.realpathSync.native(rootPath) });
             if (vscode.workspace.workspaceFolders) {
                 config.api.layers.activate(user, global, rootPath);
             }
@@ -695,9 +688,9 @@ export class Profiles extends ProfilesCache {
             await config.save(false);
             let configName;
             if (user) {
-                configName = ProfilesCache.getConfigInstance().getTeamConfig().userConfigName;
+                configName = config.userConfigName;
             } else {
-                configName = ProfilesCache.getConfigInstance().getTeamConfig().configName;
+                configName = config.configName;
             }
             await this.openConfigFile(path.join(rootPath, configName));
             const reloadButton = localize("createZoweSchema.reload.button", "Refresh Zowe Explorer");
@@ -886,13 +879,16 @@ export class Profiles extends ProfilesCache {
             }
             await this.saveProfile(schemaValues, schemaValues.name, profileType);
             vscode.window.showInformationMessage("Profile " + newProfileName + " was created.");
+            // Trigger a ProfilesCache.createConfigInstance with a fresh Config.load
+            // This shall capture any profiles created (v1 or v2)
+            await readConfigFromDisk();
             return newProfileName;
         } catch (error) {
             await errorHandling(error.message);
         }
     }
 
-    public async promptCredentials(sessionName, rePrompt?: boolean) {
+    public async promptCredentials(sessionName: string, rePrompt?: boolean) {
         const userInputBoxOptions: vscode.InputBoxOptions = {
             placeHolder: localize("createNewConnection.option.prompt.username.placeholder", "User Name"),
             prompt: localize(
@@ -907,6 +903,7 @@ export class Profiles extends ProfilesCache {
                 "Enter the password for the connection. Leave blank to not store."
             ),
         };
+
         const promptInfo = await ZoweVsCodeExtension.promptCredentials({
             sessionName,
             rePrompt,
@@ -915,8 +912,14 @@ export class Profiles extends ProfilesCache {
         });
 
         let returnValue;
-        if (promptInfo.creds) {
-            if (ProfilesCache.getConfigInstance().usingTeamConfig) {
+        if (promptInfo) {
+            const updSession = ZoweExplorerApiRegister.getMvsApi(promptInfo).getSession();
+            returnValue = [
+                updSession.ISession.user,
+                updSession.ISession.password,
+                updSession.ISession.base64EncodedAuth,
+            ];
+            if ((await this.getProfileInfo()).usingTeamConfig) {
                 const profArray = [];
                 for (const theprofile of this.allProfiles) {
                     if (theprofile.name !== promptInfo.profile.name) {
@@ -925,12 +928,12 @@ export class Profiles extends ProfilesCache {
                 }
                 profArray.push(promptInfo.profile);
                 this.allProfiles = profArray;
-                await readConfigFromDisk();
             }
-            returnValue = [promptInfo.user, promptInfo.password, promptInfo.base64EncodedAuth];
         } else {
             vscode.window.showInformationMessage(localize("promptCredentials.undefined.value", "Operation Cancelled"));
         }
+
+        await readConfigFromDisk();
         await this.refresh(ZoweExplorerApiRegister.getInstance());
         return returnValue;
     }
@@ -981,8 +984,8 @@ export class Profiles extends ProfilesCache {
         }
         deleteLabel = deletedProfile.name;
 
-        if (ProfilesCache.getConfigInstance().usingTeamConfig) {
-            const currentProfile = this.getProfileFromConfig(deleteLabel);
+        if ((await this.getProfileInfo()).usingTeamConfig) {
+            const currentProfile = await this.getProfileFromConfig(deleteLabel);
             const filePath = currentProfile.profLoc.osLoc[0];
             await this.openConfigFile(filePath);
             return;
@@ -1200,84 +1203,6 @@ export class Profiles extends ProfilesCache {
         return filteredProfile;
     }
 
-    public async getCombinedProfile(serviceProfile: IProfileLoaded, baseProfile: IProfileLoaded) {
-        // TODO: This needs to be improved
-        // The idea is to handle all type of ZE Profiles
-        const commonApi = ZoweExplorerApiRegister.getInstance().getCommonApi(serviceProfile);
-
-        // This check will handle service profiles that have username and password
-        if (serviceProfile.profile.user && serviceProfile.profile.password) {
-            return serviceProfile;
-        }
-
-        // This check is for optional credentials
-        if (
-            baseProfile &&
-            serviceProfile.profile.host &&
-            serviceProfile.profile.port &&
-            ((baseProfile.profile.host !== serviceProfile.profile.host &&
-                baseProfile.profile.port !== serviceProfile.profile.port) ||
-                (baseProfile.profile.host === serviceProfile.profile.host &&
-                    baseProfile.profile.port !== serviceProfile.profile.port))
-        ) {
-            return serviceProfile;
-        }
-        let session;
-        if (!commonApi.getSessionFromCommandArgument) {
-            // This is here for extenders
-            session = ZoweExplorerApiRegister.getInstance().getCommonApi(serviceProfile).getSession(serviceProfile);
-        } else {
-            // This process combines the information from baseprofile to serviceprofile and create a new session
-            const profSchema = this.getSchema(serviceProfile.type);
-            const cmdArgs: ICommandArguments = {
-                $0: "zowe",
-                _: [""],
-            };
-            for (const prop of Object.keys(profSchema)) {
-                cmdArgs[prop] = serviceProfile.profile[prop] ? serviceProfile.profile[prop] : baseProfile.profile[prop];
-            }
-            if (baseProfile) {
-                cmdArgs.tokenType = serviceProfile.profile.tokenType
-                    ? serviceProfile.profile.tokenType
-                    : baseProfile.profile.tokenType;
-                cmdArgs.tokenValue = serviceProfile.profile.tokenValue
-                    ? serviceProfile.profile.tokenValue
-                    : baseProfile.profile.tokenValue;
-            }
-            if (commonApi.getSessionFromCommandArgument) {
-                if (cmdArgs.tokenType === undefined || cmdArgs.tokenValue === undefined) {
-                    this.log.debug(
-                        localize(
-                            "getCombinedProfile.noToken",
-                            "Profile {0} {1} is not authorized. Please check the connection and try again.",
-                            baseProfile.name,
-                            serviceProfile.name
-                        )
-                    );
-                    session = baseProfile.profile;
-                } else {
-                    const res = await commonApi.getSessionFromCommandArgument(cmdArgs);
-                    session = res.ISession;
-                }
-            } else {
-                vscode.window.showErrorMessage(
-                    localize("getCombinedProfile.log.debug", "This extension does not support base profiles.")
-                );
-            }
-        }
-
-        // For easier debugging, move serviceProfile to updatedServiceProfile and then update it with combinedProfile
-        const updatedServiceProfile: IProfileLoaded = serviceProfile;
-        for (const prop of Object.keys(session)) {
-            if (prop === "hostname") {
-                updatedServiceProfile.profile.host = session[prop];
-            } else {
-                updatedServiceProfile.profile[prop] = session[prop];
-            }
-        }
-        return updatedServiceProfile;
-    }
-
     public async ssoLogin(node?: IZoweNodeType, label?: string): Promise<void> {
         let loginToken: string;
         let loginTokenType: string;
@@ -1327,31 +1252,19 @@ export class Profiles extends ProfilesCache {
                 return;
             }
         } else {
-            const baseProfile = this.getBaseProfile();
-            // this will handle base profiles apiml tokens
-            const checksPassed = this.optionalCredChecks(serviceProfile, baseProfile);
-            if (!checksPassed) {
-                vscode.window.showInformationMessage(
-                    localize("ssoAuth.noBase", "This profile does not support token authentication.")
-                );
-                return;
-            }
+            const baseProfile = await this.fetchBaseProfile();
             if (baseProfile) {
                 creds = await this.loginCredentialPrompt();
                 if (!creds) {
                     return;
                 }
                 try {
-                    const combinedProfile = await Profiles.getInstance().getCombinedProfile(
-                        serviceProfile,
-                        baseProfile
-                    );
                     const updSession = new Session({
-                        hostname: combinedProfile.profile.host,
-                        port: combinedProfile.profile.port,
+                        hostname: serviceProfile.profile.host,
+                        port: serviceProfile.profile.port,
                         user: creds[0],
                         password: creds[1],
-                        rejectUnauthorized: combinedProfile.profile.rejectUnauthorized,
+                        rejectUnauthorized: serviceProfile.profile.rejectUnauthorized,
                         tokenType: loginTokenType,
                         type: SessConstants.AUTH_TYPE_TOKEN,
                     });
@@ -1363,7 +1276,6 @@ export class Profiles extends ProfilesCache {
                         tokenValue: loginToken,
                     };
                     await this.updateBaseProfileFileLogin(baseProfile, updBaseProfile);
-                    await readConfigFromDisk();
                     await this.refresh(ZoweExplorerApiRegister.getInstance());
                 } catch (error) {
                     vscode.window.showErrorMessage(
@@ -1389,37 +1301,30 @@ export class Profiles extends ProfilesCache {
         }
         try {
             // this will handle extenders
-            if (serviceProfile.type !== "zosmf" && serviceProfile.profile.tokenValue !== undefined) {
+            if (
+                serviceProfile.type !== "zosmf" &&
+                serviceProfile.profile?.tokenType !== SessConstants.TOKEN_TYPE_APIML
+            ) {
                 await ZoweExplorerApiRegister.getInstance()
                     .getCommonApi(serviceProfile)
                     .logout(await node.getSession());
             } else {
                 // this will handle base profile apiml tokens
-                const baseProfile = this.getBaseProfile();
-                const checksPassed = this.optionalCredChecks(serviceProfile, baseProfile);
-                if (!checksPassed) {
-                    vscode.window.showInformationMessage(
-                        localize("ssoAuth.noBase", "This profile does not support token authentication.")
-                    );
-                    return;
-                }
-
-                const combinedProfile = await this.getCombinedProfile(serviceProfile, baseProfile);
+                const baseProfile = await this.fetchBaseProfile();
                 const loginTokenType = ZoweExplorerApiRegister.getInstance()
                     .getCommonApi(serviceProfile)
                     .getTokenTypeName();
                 const updSession = new Session({
-                    hostname: combinedProfile.profile.host,
-                    port: combinedProfile.profile.port,
-                    rejectUnauthorized: combinedProfile.profile.rejectUnauthorized,
+                    hostname: serviceProfile.profile.host,
+                    port: serviceProfile.profile.port,
+                    rejectUnauthorized: serviceProfile.profile.rejectUnauthorized,
                     tokenType: loginTokenType,
-                    tokenValue: combinedProfile.profile.tokenValue,
+                    tokenValue: serviceProfile.profile.tokenValue,
                     type: SessConstants.AUTH_TYPE_TOKEN,
                 });
                 await ZoweExplorerApiRegister.getInstance().getCommonApi(serviceProfile).logout(updSession);
 
                 await this.updateBaseProfileFileLogout(baseProfile);
-                await readConfigFromDisk();
                 await this.refresh(ZoweExplorerApiRegister.getInstance());
             }
             vscode.window.showInformationMessage(
@@ -1436,59 +1341,40 @@ export class Profiles extends ProfilesCache {
         await vscode.window.showTextDocument(document);
     }
 
-    private async updateBaseProfileFileLogin(baseProfile: IProfileLoaded, updBaseProfile: IProfile) {
-        const mProfileInfo = ProfilesCache.getConfigInstance();
-        if (mProfileInfo.usingTeamConfig) {
-            // write to config file to add tokenType & tokenValue fields
-            const profileProps = Object.keys(mProfileInfo.getTeamConfig().api.profiles.get(baseProfile.name));
-            const profileExists =
-                mProfileInfo.getTeamConfig().api.profiles.exists(baseProfile.name) && profileProps.length > 0;
-            if (profileExists) {
-                const profilePath = mProfileInfo.getTeamConfig().api.profiles.expandPath(baseProfile.name);
-                mProfileInfo.getTeamConfig().set(`${profilePath}.properties.tokenType`, updBaseProfile.tokenType);
-                mProfileInfo
-                    .getTeamConfig()
-                    .set(`${profilePath}.properties.tokenValue`, updBaseProfile.tokenValue, { secure: true });
-                await mProfileInfo.getTeamConfig().save(false);
+    private getProfileIcon(profInfo: zowe.imperative.ProfileInfo, name: string): string[] {
+        const prof = profInfo.getAllProfiles().find((p) => p.profName === name);
+        const osLocInfo = profInfo.getOsLocInfo(prof);
+        const ret: string[] = [];
+        for (const loc of osLocInfo ?? []) {
+            if (loc.global) {
+                ret.push("$(home)");
+            } else {
+                ret.push("$(folder)");
             }
-        } else {
-            // write to yaml file to add tokenType & tokenValue fields
-            const profileManager = Profiles.getInstance().getCliProfileManager(baseProfile.type);
-            const updateParms: IUpdateProfile = {
-                name: baseProfile.name,
-                merge: true,
-                profile: updBaseProfile,
-            };
-            await profileManager.update(updateParms);
         }
+        return ret;
     }
 
-    private async updateBaseProfileFileLogout(baseProfile: IProfileLoaded) {
-        const mProfileInfo = ProfilesCache.getConfigInstance();
-        if (mProfileInfo.usingTeamConfig) {
-            // remove tokenType and TokenValue from config file
-            const profileProps = Object.keys(mProfileInfo.getTeamConfig().api.profiles.get(baseProfile.name));
-            const profileExists =
-                mProfileInfo.getTeamConfig().api.profiles.exists(baseProfile.name) && profileProps.length > 0;
-            if (profileExists) {
-                const profilePath = mProfileInfo.getTeamConfig().api.profiles.expandPath(baseProfile.name);
-                mProfileInfo.getTeamConfig().delete(`${profilePath}.properties.tokenType`);
-                mProfileInfo.getTeamConfig().delete(`${profilePath}.properties.tokenValue`);
-                await mProfileInfo.getTeamConfig().save(false);
-            }
-        } else {
-            // remove tokenType and TokenValue from old-style yaml profiles
-            this.getCliProfileManager(baseProfile.type).save({
-                name: baseProfile.name,
-                type: baseProfile.type,
-                overwrite: true,
-                profile: {
-                    ...baseProfile.profile,
-                    tokenType: undefined,
-                    tokenValue: undefined,
-                },
-            });
-        }
+    private async updateBaseProfileFileLogin(profile: IProfileLoaded, updProfile: IProfile) {
+        const upd = { profileName: profile.name, profileType: profile.type };
+        const config = ImperativeConfig.instance.config;
+        const { user, global } = config.api.layers.find(upd.profileName);
+        const profilePath = config.api.profiles.expandPath(upd.profileName);
+        config.api.layers.activate(user, global);
+        config.set(`${profilePath}.properties.tokenType`, updProfile.tokenType);
+        config.set(`${profilePath}.properties.tokenValue`, updProfile.tokenValue);
+        await config.save();
+    }
+
+    private async updateBaseProfileFileLogout(profile: IProfileLoaded) {
+        const upd = { profileName: profile.name, profileType: profile.type };
+        const config = ImperativeConfig.instance.config;
+        const { user, global } = config.api.layers.find(upd.profileName);
+        const profilePath = config.api.profiles.expandPath(upd.profileName);
+        config.api.layers.activate(user, global);
+        config.set(`${profilePath}.properties.tokenType`, undefined);
+        config.set(`${profilePath}.properties.tokenValue`, undefined);
+        await config.save();
     }
 
     private async loginCredentialPrompt(): Promise<string[]> {
@@ -1505,29 +1391,6 @@ export class Profiles extends ProfilesCache {
             }
         }
         return [newUser, newPass];
-    }
-
-    private optionalCredChecks(serviceProfile?: IProfileLoaded, baseProfile?: IProfileLoaded): boolean {
-        if (serviceProfile.profile.user && serviceProfile.profile.password) {
-            return false;
-        }
-        // Skip if there is no base profile
-        if (!baseProfile) {
-            return false;
-        }
-        // This check is for optional credentials
-        if (
-            baseProfile &&
-            serviceProfile.profile.host &&
-            serviceProfile.profile.port &&
-            ((baseProfile.profile.host !== serviceProfile.profile.host &&
-                baseProfile.profile.port !== serviceProfile.profile.port) ||
-                (baseProfile.profile.host === serviceProfile.profile.host &&
-                    baseProfile.profile.port !== serviceProfile.profile.port))
-        ) {
-            return false;
-        }
-        return true;
     }
 
     private async deletePrompt(deletedProfile: IProfileLoaded) {
@@ -1850,7 +1713,8 @@ export class Profiles extends ProfilesCache {
             }
         }
 
-        const OrigProfileInfo = this.loadedProfile.profile;
+        // use direct load since merging was done previously during initialization
+        const OrigProfileInfo = (await this.directLoad(this.loadedProfile.type, this.loadedProfile.name)).profile;
         const NewProfileInfo = updProfileInfo.profile;
 
         // Update the currently-loaded profile with the new info

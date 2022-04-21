@@ -11,7 +11,12 @@
 
 import { ZoweUSSNode } from "../../../src/uss/ZoweUSSNode";
 import * as vscode from "vscode";
-import { createIProfile, createISession, createFileResponse } from "../../../__mocks__/mockCreators/shared";
+import {
+    createIProfile,
+    createISession,
+    createFileResponse,
+    createInstanceOfProfileInfo,
+} from "../../../__mocks__/mockCreators/shared";
 import { createUSSSessionNode } from "../../../__mocks__/mockCreators/uss";
 import { ProfilesCache, ValidProfileEnum } from "@zowe/zowe-explorer-api";
 import { Profiles } from "../../../src/Profiles";
@@ -56,13 +61,13 @@ async function createGlobalMocks() {
                 WorkspaceFolder: 3,
             };
         }),
+        mockProfileInfo: createInstanceOfProfileInfo(),
+        mockProfilesCache: new ProfilesCache(Logger.getAppLogger()),
     };
 
-    Object.defineProperty(ProfilesCache, "getConfigInstance", {
+    Object.defineProperty(globalMocks.mockProfilesCache, "getProfileInfo", {
         value: jest.fn(() => {
-            return {
-                usingTeamConfig: false,
-            };
+            return { value: globalMocks.mockProfileInfo, configurable: true };
         }),
     });
     Object.defineProperty(vscode, "ConfigurationTarget", { value: globalMocks.enums, configurable: true });
@@ -82,9 +87,6 @@ async function createGlobalMocks() {
                 validateProfiles: jest.fn(),
                 loadNamedProfile: globalMocks.mockLoadNamedProfile,
                 getBaseProfile: jest.fn(() => {
-                    return globalMocks.testProfile;
-                }),
-                getCombinedProfile: jest.fn(() => {
                     return globalMocks.testProfile;
                 }),
                 editSession: globalMocks.mockEditSession,
@@ -107,6 +109,7 @@ async function createGlobalMocks() {
                     name: globalMocks.testProfile.name,
                     setting: true,
                 }),
+                getProfileInfo: () => globalMocks.mockProfileInfo,
             };
         }),
         configurable: true,

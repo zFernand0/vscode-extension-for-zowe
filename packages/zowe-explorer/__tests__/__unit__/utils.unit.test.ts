@@ -11,9 +11,15 @@
 
 import * as vscode from "vscode";
 import { ProfilesCache } from "@zowe/zowe-explorer-api";
+import { Logger } from "@zowe/imperative";
 import * as utils from "../../src/utils/ProfilesUtils";
 import * as globals from "../../src/globals";
-import { createInstanceOfProfile, createIProfile, createValidIProfile } from "../../__mocks__/mockCreators/shared";
+import {
+    createInstanceOfProfile,
+    createInstanceOfProfileInfo,
+    createIProfile,
+    createValidIProfile,
+} from "../../__mocks__/mockCreators/shared";
 import { Profiles } from "../../src/Profiles";
 
 function createGlobalMocks() {
@@ -21,6 +27,8 @@ function createGlobalMocks() {
         isTheia: jest.fn(),
         testProfileLoaded: createValidIProfile(),
         mockProfileInstance: null,
+        mockProfileInfo: createInstanceOfProfileInfo(),
+        mockProfilesCache: new ProfilesCache(Logger.getAppLogger()),
     };
 
     globalMocks.mockProfileInstance = createInstanceOfProfile(globalMocks.testProfileLoaded);
@@ -41,11 +49,9 @@ function createGlobalMocks() {
     Object.defineProperty(globals, "ISTHEIA", { get: isTheia, configurable: true });
     Object.defineProperty(utils, "isTheia", { value: jest.fn(), configurable: true });
 
-    Object.defineProperty(ProfilesCache, "getConfigInstance", {
+    Object.defineProperty(globalMocks.mockProfilesCache, "getProfileInfo", {
         value: jest.fn(() => {
-            return {
-                usingTeamConfig: false,
-            };
+            return { value: globalMocks.mockProfileInfo, configurable: true };
         }),
     });
 
@@ -96,13 +102,11 @@ describe("Utils Unit Tests - Function errorHandling", () => {
         );
     });
     it("Checking common error handling - Theia", async () => {
-        // const globalMocks = createGlobalMocks();
         const blockMocks = createBlockMocks();
 
         mocked(Profiles.getInstance).mockReturnValue(blockMocks.profile);
         mocked(vscode.window.showErrorMessage).mockResolvedValueOnce({ title: "Check Credentials" });
         mocked(utils.isTheia).mockReturnValue(true);
-        // globalMocks.isTheia.mockReturnValue(true);
         const label = "invalidCred";
 
         await utils.errorHandling({ mDetails: { errorCode: 401 } }, label);

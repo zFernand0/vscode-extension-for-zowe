@@ -14,7 +14,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import { AbstractCredentialManager, ImperativeError, SecureCredential, Logger } from "@zowe/imperative";
-import { getZoweDir } from "@zowe/cli";
+import { getZoweDir } from "../profiles/ProfilesCache";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -42,8 +42,8 @@ export class KeytarCredentialManager extends AbstractCredentialManager {
      * Combined list of services that credentials may be stored under
      */
     private allServices: string[] = [
-        globals.SCS_ZOWE_CLI_V2,
         globals.SETTINGS_SCS_DEFAULT,
+        globals.SCS_ZOWE_PLUGIN,
         globals.SCS_BRIGHTSIDE,
         globals.SCS_ZOWE_CLI,
         globals.SCS_BROADCOM_PLUGIN,

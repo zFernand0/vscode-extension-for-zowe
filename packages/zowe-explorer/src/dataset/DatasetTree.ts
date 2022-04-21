@@ -15,13 +15,7 @@ import * as nls from "vscode-nls";
 import * as globals from "../globals";
 import * as dsActions from "./actions";
 import { IProfileLoaded, Logger, Session } from "@zowe/imperative";
-import {
-    ValidProfileEnum,
-    IZoweTree,
-    IZoweDatasetTreeNode,
-    PersistenceSchemaEnum,
-    ProfilesCache,
-} from "@zowe/zowe-explorer-api";
+import { ValidProfileEnum, IZoweTree, IZoweDatasetTreeNode, PersistenceSchemaEnum } from "@zowe/zowe-explorer-api";
 import { Profiles } from "../Profiles";
 import { ZoweExplorerApiRegister } from "../ZoweExplorerApiRegister";
 import {
@@ -250,7 +244,8 @@ export class DatasetTree extends ZoweTreeProvider implements IZoweTree<IZoweData
             return;
         }
         // Line validation
-        const favoriteDataSetPattern = /^\[.+\]\:\s[a-zA-Z#@\$][a-zA-Z0-9#@\$\-]{0,7}(\.[a-zA-Z#@\$][a-zA-Z0-9#@\$\-]{0,7})*\{p?ds\}$/;
+        const favoriteDataSetPattern =
+            /^\[.+\]\:\s[a-zA-Z#@\$][a-zA-Z0-9#@\$\-]{0,7}(\.[a-zA-Z#@\$][a-zA-Z0-9#@\$\-]{0,7})*\{p?ds\}$/;
         const favoriteSearchPattern = /^\[.+\]\:\s.*\{session}$/;
         for (const line of lines) {
             if (!(favoriteDataSetPattern.test(line) || favoriteSearchPattern.test(line))) {
@@ -490,7 +485,7 @@ export class DatasetTree extends ZoweTreeProvider implements IZoweTree<IZoweData
                 }
             }
             if (this.mSessionNodes.length === 1) {
-                this.addSingleSession(Profiles.getInstance().getDefaultProfile(profileType));
+                await this.addSingleSession(Profiles.getInstance().getDefaultProfile(profileType));
             }
         }
         this.refresh();
@@ -817,8 +812,6 @@ export class DatasetTree extends ZoweTreeProvider implements IZoweTree<IZoweData
         // Update tree filter to include selected node, and expand session node in tree
         sessionNode.tooltip = sessionNode.pattern = await this.createFilterString(parentName, sessionNode);
         sessionNode.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-        // sessionNode.label = sessionNode.label.trim() + " ";
-        // sessionNode.label = sessionNode.label.trim();
         sessionNode.dirty = true;
         await this.refresh();
         let children = await sessionNode.getChildren();
@@ -848,8 +841,6 @@ export class DatasetTree extends ZoweTreeProvider implements IZoweTree<IZoweData
                 this.removeFileHistory(itemPath);
                 return;
             } else {
-                // memberNode.getParent().label = memberNode.getParent().label.trim() + " ";
-                // memberNode.getParent().label = memberNode.getParent().label.trim();
                 memberNode.getParent().collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
                 this.addSearchHistory(`${parentName}(${memberName})`);
                 dsActions.openPS(memberNode, true, this);
@@ -903,7 +894,7 @@ export class DatasetTree extends ZoweTreeProvider implements IZoweTree<IZoweData
                     const createPick = new FilterDescriptor(DatasetTree.defaultDialogText);
                     const items: vscode.QuickPickItem[] = this.mHistory
                         .getSearchHistory()
-                        .map((element) => new FilterItem(element));
+                        .map((element) => new FilterItem({ text: element }));
                     if (globals.ISTHEIA) {
                         const options1: vscode.QuickPickOptions = {
                             placeHolder: localize("searchHistory.options.prompt", "Select a filter"),
@@ -994,8 +985,6 @@ export class DatasetTree extends ZoweTreeProvider implements IZoweTree<IZoweData
                 dsSets.push(dataSet);
             }
 
-            // nonFaveNode.label = nonFaveNode.label.trim() + " ";
-            // nonFaveNode.label.trim();
             let datasets: string;
             for (const item of dsSets) {
                 const newItem = item;
@@ -1288,22 +1277,8 @@ export class DatasetTree extends ZoweTreeProvider implements IZoweTree<IZoweData
      */
     private async addSingleSession(profile: IProfileLoaded) {
         if (profile) {
-            if (!ProfilesCache.getConfigInstance().usingTeamConfig) {
-                // If baseProfile exists, combine that information first before adding the session to the tree
-                // TODO: Move addSession to abstract/ZoweTreeProvider (similar to editSession)
-                const baseProfile = Profiles.getInstance().getBaseProfile();
-
-                if (baseProfile) {
-                    try {
-                        const combinedProfile = await Profiles.getInstance().getCombinedProfile(profile, baseProfile);
-                        profile = combinedProfile;
-                    } catch (error) {
-                        throw error;
-                    }
-                }
-            }
             // If session is already added, do nothing
-            if (this.mSessionNodes.find((tempNode) => tempNode.label.toString() === profile.name)) {
+            if (this.mSessionNodes.find((tNode) => tNode.label.toString() === profile.name)) {
                 return;
             }
             // Uses loaded profile to create a session with the MVS API
@@ -1319,6 +1294,7 @@ export class DatasetTree extends ZoweTreeProvider implements IZoweTree<IZoweData
                 profile
             );
             node.contextValue = globals.DS_SESSION_CONTEXT;
+            await this.refreshHomeProfileContext(node);
             const icon = getIconByNode(node);
             if (icon) {
                 node.iconPath = icon.path;

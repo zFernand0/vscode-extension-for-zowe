@@ -11,14 +11,11 @@
 
 import * as semver from "semver";
 import * as vscode from "vscode";
+import * as path from "path";
 import { ProfilesCache, ZoweExplorerApi } from "../profiles";
 import { IZoweLogger, MessageSeverityEnum } from "../logger/IZoweLogger";
-import { ISession } from "@zowe/imperative";
-import {
-    IPromptCredentialsOptions,
-    IPromptCredentialsReturnValue,
-    IPromptUserPassOptions,
-} from "./doc/IPromptCredentials";
+import { ISession, IProfileLoaded, Logger } from "@zowe/imperative";
+import { IPromptCredentialsOptions, IPromptUserPassOptions } from "./doc/IPromptCredentials";
 
 /**
  * Collection of utility functions for writing Zowe Explorer VS Code extensions.
@@ -31,6 +28,10 @@ export class ZoweVsCodeExtension {
      *          to access the Zowe Explorer APIs or `undefined`. Also `undefined` if requiredVersion
      *          is larger than the version of Zowe Explorer found.
      */
+    private static profilesCache = new ProfilesCache(
+        Logger.getAppLogger(),
+        vscode.workspace.workspaceFolders?.[0].uri.fsPath
+    );
     public static getZoweExplorerApi(requiredVersion?: string): ZoweExplorerApi.IApiRegisterClient {
         const zoweExplorerApi = vscode.extensions.getExtension("Zowe.vscode-extension-for-zowe");
         if (zoweExplorerApi?.exports) {
@@ -68,38 +69,42 @@ export class ZoweVsCodeExtension {
         }
     }
 
-    public static async promptCredentials(options: IPromptCredentialsOptions): Promise<IPromptCredentialsReturnValue> {
-        const loadProfile = ProfilesCache.getLoadedProfConfig(options.sessionName.trim());
+    /**
+     * Helper function to standardize the way we ask the user for credentials
+     * @param options Set of options to use when prompting for credentials
+     * @returns Instance of IProfileLoaded containing information about the updated profile
+     */
+    public static async promptCredentials(options: IPromptCredentialsOptions): Promise<IProfileLoaded> {
+        const loadProfile = await this.profilesCache.getLoadedProfConfig(options.sessionName.trim());
+        if (loadProfile == null) return undefined;
         const loadSession = loadProfile.profile as ISession;
 
-        const creds = await ZoweVsCodeExtension.promptUserPass({ session: loadSession, rePrompt: options.rePrompt });
+        const creds = await ZoweVsCodeExtension.promptUserPass({ session: loadSession, ...options });
 
         if (creds && creds.length > 0) {
             loadProfile.profile.user = loadSession.user = creds[0];
             loadProfile.profile.password = loadSession.password = creds[1];
 
             const upd = { profileName: loadProfile.name, profileType: loadProfile.type };
-            await ProfilesCache.getConfigInstance().updateProperty({ ...upd, property: "user", value: creds[0] });
-            await ProfilesCache.getConfigInstance().updateProperty({ ...upd, property: "password", value: creds[1] });
+            await (
+                await this.profilesCache.getProfileInfo()
+            ).updateProperty({ ...upd, property: "user", value: creds[0] });
+            await (
+                await this.profilesCache.getProfileInfo()
+            ).updateProperty({ ...upd, property: "password", value: creds[1] });
 
-            const updSession = ZoweVsCodeExtension.getZoweExplorerApi().getMvsApi(loadProfile).getSession();
-            return {
-                user: updSession.ISession.user,
-                password: updSession.ISession.password,
-                base64EncodedAuth: updSession.ISession.base64EncodedAuth,
-                creds: true,
-                profile: loadProfile,
-            };
+            return loadProfile;
         }
-        return { creds: false, profile: loadProfile };
+        return undefined;
     }
 
     public static async inputBox(inputBoxOptions: vscode.InputBoxOptions): Promise<string> {
         if (!inputBoxOptions.validateInput) {
             // adding this for the theia breaking changes with input boxes
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             inputBoxOptions.validateInput = (value) => null;
         }
-        return vscode.window.showInputBox(inputBoxOptions);
+        return await vscode.window.showInputBox(inputBoxOptions);
     }
 
     private static async promptUserPass(options: IPromptUserPassOptions): Promise<string[] | undefined> {
