@@ -333,9 +333,7 @@ export class TsoCommandHandler extends ZoweCommandProvider {
         } else if (profileInfo.usingTeamConfig) {
             const tempProfiles = profileInfo.getAllProfiles("tso");
             if (tempProfiles.length > 0) {
-                tsoProfile = await this.selectTsoProfile(
-                    tempProfiles.map((p) => ProfileInfo.profAttrsToProfLoaded(p))
-                );
+                tsoProfile = await this.selectTsoProfile(tempProfiles.map((p) => ProfileInfo.profAttrsToProfLoaded(p)));
                 if (tsoProfile != null) {
                     const prof = profileInfo.mergeArgsForProfile(tsoProfile.profile as IProfAttrs);
                     iStartTso.forEach(

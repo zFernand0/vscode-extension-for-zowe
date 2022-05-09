@@ -12,11 +12,7 @@
 import { IProfileLoaded, CliProfileManager, IProfAttrs, IProfile, Logger, ProfileInfo } from "@zowe/imperative";
 import { ZoweExplorerApi } from "./ZoweExplorerApi";
 
-import { getZoweDir as _getZoweDir } from "@zowe/core-for-zowe-sdk";
-// import { getZoweDir } from "@zowe/cli";
-// const zowe = { getZoweDir };
-
-// import * as zowe from "@zowe/cli";
+import { getZoweDir } from "@zowe/core-for-zowe-sdk";
 
 import * as path from "path";
 import * as os from "os";
@@ -48,10 +44,6 @@ export enum ValidProfileEnum {
     UNVERIFIED = 1,
     VALID = 0,
     INVALID = -1,
-}
-
-export function getZoweDir(): string {
-    return _getZoweDir();
 }
 
 export class ProfilesCache {
@@ -284,7 +276,6 @@ export class ProfilesCache {
         if (!profileManager) {
             try {
                 profileManager = new CliProfileManager({
-                    // profileRootDirectory: path.join(zowe.getZoweDir(), "profiles"),
                     profileRootDirectory: path.join(getZoweDir(), "profiles"),
                     type,
                 });
@@ -322,7 +313,6 @@ export class ProfilesCache {
     public isSecureCredentialPluginActive(): boolean {
         let imperativeIsSecure = false;
         try {
-            // const fileName = path.join(zowe.getZoweDir(), "settings", "imperative.json");
             const fileName = path.join(getZoweDir(), "settings", "imperative.json");
             let settings: Record<string, unknown>;
             if (fs.existsSync(fileName)) {
@@ -342,11 +332,7 @@ export class ProfilesCache {
         return imperativeIsSecure;
     }
 
-    public getProfileLoaded(
-        profileName: string,
-        profileType: string,
-        profile: IProfile
-    ): IProfileLoaded {
+    public getProfileLoaded(profileName: string, profileType: string, profile: IProfile): IProfileLoaded {
         return {
             message: "",
             name: profileName,
@@ -418,9 +404,7 @@ export class ProfilesCache {
     }
 
     // check correct merging of a single profile
-    protected async checkMergingConfigSingleProfile(
-        profile: IProfileLoaded
-    ): Promise<IProfileLoaded> {
+    protected async checkMergingConfigSingleProfile(profile: IProfileLoaded): Promise<IProfileLoaded> {
         const baseProfile = await this.fetchBaseProfile();
         if (
             (baseProfile?.profile.host !== profile?.profile.host ||
@@ -433,10 +417,7 @@ export class ProfilesCache {
         return profile;
     }
 
-    protected getMergedAttrs(
-        mProfileInfo: ProfileInfo,
-        profAttrs: IProfAttrs
-    ): IProfile {
+    protected getMergedAttrs(mProfileInfo: ProfileInfo, profAttrs: IProfAttrs): IProfile {
         const profile: IProfile = {};
         if (profAttrs != null) {
             const mergedArgs = mProfileInfo.mergeArgsForProfile(profAttrs, { getSecureVals: true });

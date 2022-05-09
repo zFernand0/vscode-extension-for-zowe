@@ -9,7 +9,6 @@
  *                                                                                 *
  */
 
-jest.mock("Session");
 jest.mock("@zowe/imperative");
 
 import * as vscode from "vscode";

@@ -1777,6 +1777,10 @@
       }
     },
     "testRegex": "__tests__.*\\.(spec|test)\\.ts$",
+    "moduleDirectories": [
+      "node_modules",
+      "../../node_modules"
+    ],
     "modulePathIgnorePatterns": [
       "__tests__/__integration__/",
       "__tests__/__theia__/",

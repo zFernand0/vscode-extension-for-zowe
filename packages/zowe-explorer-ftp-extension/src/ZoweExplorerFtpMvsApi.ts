@@ -20,7 +20,16 @@ import { MessageSeverityEnum, ZoweExplorerApi, ZoweVsCodeExtension } from "@zowe
 import { DataSetUtils, TRANSFER_TYPE_ASCII, TRANSFER_TYPE_BINARY } from "@zowe/zos-ftp-for-zowe-cli";
 import { AbstractFtpApi } from "./ZoweExplorerAbstractFtpApi";
 import { ZoweLogger } from "./ZoweExplorerFtpUtils";
-import { CreateDataSetTypeEnum, ICreateDataSetOptions, IDataSet, IDeleteDatasetOptions, IDownloadOptions, IListOptions, IUploadOptions, IZosFilesResponse } from "@zowe/zos-files-for-zowe-sdk";
+import {
+    CreateDataSetTypeEnum,
+    ICreateDataSetOptions,
+    IDataSet,
+    IDeleteDatasetOptions,
+    IDownloadOptions,
+    IListOptions,
+    IUploadOptions,
+    IZosFilesResponse,
+} from "@zowe/zos-files-for-zowe-sdk";
 // The Zowe FTP CLI plugin is written and uses mostly JavaScript, so relax the rules here.
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -346,10 +355,7 @@ export class FtpMvsApi extends AbstractFtpApi implements ZoweExplorerApi.IMvs {
         );
         throw new Error();
     }
-    public async deleteDataSet(
-        dataSetName: string,
-        options?: IDeleteDatasetOptions
-    ): Promise<IZosFilesResponse> {
+    public async deleteDataSet(dataSetName: string, options?: IDeleteDatasetOptions): Promise<IZosFilesResponse> {
         const result = this.getDefaultResponse();
         let connection: any;
         try {

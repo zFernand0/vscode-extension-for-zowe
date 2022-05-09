@@ -45,11 +45,7 @@ class MockUssApi1 implements ZoweExplorerApi.IUss {
     ): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
-    public putContent(
-        inputFilePath: string,
-        ussFilePath: string,
-        options: IUploadOptions
-    ): Promise<IZosFilesResponse> {
+    public putContent(inputFilePath: string, ussFilePath: string, options: IUploadOptions): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public uploadDirectory(
@@ -109,11 +105,7 @@ class MockUssApi2 implements ZoweExplorerApi.IUss {
     ): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
-    public putContent(
-        inputFilePath: string,
-        ussFilePath: string,
-        options: IUploadOptions
-    ): Promise<IZosFilesResponse> {
+    public putContent(inputFilePath: string, ussFilePath: string, options: IUploadOptions): Promise<IZosFilesResponse> {
         throw new Error("Method not implemented.");
     }
     public uploadDirectory(

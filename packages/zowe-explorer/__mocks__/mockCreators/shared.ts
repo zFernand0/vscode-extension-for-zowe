@@ -225,6 +225,7 @@ export function createInstanceOfProfile(profile: IProfileLoaded) {
         getDefaultConfigProfile: jest.fn(),
         getProfileFromConfig: jest.fn(),
         getProfileLoaded: jest.fn(),
+        getCombinedProfile: jest.fn(),
     } as any;
 }
 

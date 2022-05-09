@@ -9,6 +9,9 @@
  *                                                                                 *
  */
 
+import { getZoweDir } from "@zowe/core-for-zowe-sdk"; // causes problems with the tests
+import { getImperativeConfig } from "@zowe/cli"; // CLI squad will replace with SDK.getProfileDefinition()
+
 import * as fs from "fs";
 import * as path from "path";
 import * as globals from "./globals";
@@ -28,7 +31,6 @@ import {
     IZoweTree,
 } from "@zowe/zowe-explorer-api";
 import { CliProfileManager, ImperativeConfig } from "@zowe/imperative";
-import { getZoweDir } from "@zowe/core-for-zowe-sdk";
 
 import { ZoweExplorerApiRegister } from "./ZoweExplorerApiRegister";
 import { ZoweExplorerExtender } from "./ZoweExplorerExtender";

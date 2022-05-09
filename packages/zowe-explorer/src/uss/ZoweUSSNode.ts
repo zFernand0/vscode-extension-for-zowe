@@ -41,6 +41,31 @@ const localize: nls.LocalizeFunc = nls.loadMessageBundle();
  * @extends {vscode.TreeItem}
  */
 export class ZoweUSSNode extends ZoweTreeNode implements IZoweUSSTreeNode {
+    /**
+     * Injects extra data to tooltip based on node status and other conditions
+     * @param node
+     * @param tooltip
+     * @returns {string}
+     * @deprecated Please use this.injectAdditionalDataToTooltip(tooltip)
+     */
+    public static injectAdditionalDataToTooltip(node: ZoweUSSNode, tooltip: string) {
+        if (node.downloaded && node.downloadedTime) {
+            return ZoweUSSNode._injectAdditionalDataToTooltip(tooltip, node.downloadedTime);
+        }
+        return tooltip;
+    }
+
+    /**
+     * Helper tooltip injection function
+     * @param tooltip Tooltip which to append formatted time
+     * @param downloadedTime Time to format
+     * @returns Tooltip text with downloaded time formatted
+     */
+    private static _injectAdditionalDataToTooltip(tooltip, downloadedTime) {
+        // TODO: Add time formatter to localization so we will use not just US variant
+        return `${tooltip} (Downloaded: ${moment(downloadedTime).format("HH:mm MM/DD/YY")})`;
+    }
+
     public command: vscode.Command;
     public fullPath = "";
     public dirty = true;
@@ -116,20 +141,6 @@ export class ZoweUSSNode extends ZoweTreeNode implements IZoweUSSTreeNode {
 
     /**
      * Injects extra data to tooltip based on node status and other conditions
-     * @param node
-     * @param tooltip
-     * @returns {string}
-     * @deprecated Please use this.injectAdditionalDataToTooltip(tooltip)
-     */
-    public static injectAdditionalDataToTooltip(node: ZoweUSSNode, tooltip: string) {
-        if (node.downloaded && node.downloadedTime) {
-            return ZoweUSSNode._injectAdditionalDataToTooltip(tooltip, node.downloadedTime);;
-        }
-        return tooltip;
-    }
-
-    /**
-     * Injects extra data to tooltip based on node status and other conditions
      * @param tooltip
      * @returns {string}
      */
@@ -138,17 +149,6 @@ export class ZoweUSSNode extends ZoweTreeNode implements IZoweUSSTreeNode {
             return ZoweUSSNode._injectAdditionalDataToTooltip(tooltip, this.downloadedTime);
         }
         return tooltip;
-    }
-
-    /**
-     * Helper tooltip injection function
-     * @param tooltip Tooltip which to append formatted time
-     * @param downloadedTime Time to format
-     * @returns Tooltip text with downloaded time formatted
-     */
-    private static _injectAdditionalDataToTooltip(tooltip, downloadedTime) {
-        // TODO: Add time formatter to localization so we will use not just US variant
-        return `${tooltip} (Downloaded: ${moment(downloadedTime).format("HH:mm MM/DD/YY")})`;
     }
 
     /**

@@ -14,8 +14,9 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as globals from "../globals";
-import { Session, IProfile, IProfileLoaded, ProfileInfo, Logger } from "@zowe/imperative";
-import { getSecurityModules, IZoweTreeNode, ProfilesCache, ZoweTreeNode, getZoweDir } from "@zowe/zowe-explorer-api";
+import { Session, IProfile, IProfileLoaded, ProfileInfo } from "@zowe/imperative";
+import { getSecurityModules, IZoweTreeNode, ZoweTreeNode } from "@zowe/zowe-explorer-api";
+import { getZoweDir } from "@zowe/core-for-zowe-sdk";
 import { Profiles } from "../Profiles";
 import * as nls from "vscode-nls";
 

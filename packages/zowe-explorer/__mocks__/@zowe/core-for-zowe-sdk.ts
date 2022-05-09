@@ -9,7 +9,6 @@
  *                                                                                 *
  */
 
-import * as path from "path";
-import { IZoweLogger } from "@zowe/zowe-explorer-api";
-
-export const ZoweLogger = new IZoweLogger("Zowe Explorer FTP Extension", path.join(__dirname, "..", ".."));
+module.exports = {
+  ...jest.genMockFromModule("@zowe/core-for-zowe-sdk"),
+};

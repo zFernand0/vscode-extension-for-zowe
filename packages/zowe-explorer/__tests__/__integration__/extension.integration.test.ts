@@ -516,11 +516,9 @@ describe("Extension Integration Tests", async () => {
                         ].map((p) => p.catch((err) => err))
                     );
 
-                    await Upload.bufferToDataSet(
-                        sessionNode.getSession(),
-                        Buffer.from("1234"),
-                        fromDataSetName
-                    ).catch((err) => err);
+                    await Upload.bufferToDataSet(sessionNode.getSession(), Buffer.from("1234"), fromDataSetName).catch(
+                        (err) => err
+                    );
                 });
                 afterEach(async () => {
                     await Promise.all(
@@ -640,11 +638,9 @@ describe("Extension Integration Tests", async () => {
                         ].map((p) => p.catch((err) => err))
                     );
 
-                    await Upload.bufferToDataSet(
-                        sessionNode.getSession(),
-                        Buffer.from("1234"),
-                        fromDataSetName
-                    ).catch((err) => err);
+                    await Upload.bufferToDataSet(sessionNode.getSession(), Buffer.from("1234"), fromDataSetName).catch(
+                        (err) => err
+                    );
                 });
                 afterEach(async () => {
                     await Promise.all(
@@ -681,10 +677,7 @@ describe("Extension Integration Tests", async () => {
                         await dsActions.copyDataSet(fromNode);
                         await dsActions.pasteMember(toNode, testTree);
 
-                        contents = await Get.dataSet(
-                            sessionNode.getSession(),
-                            `${toDataSetName}(${toMemberName})`
-                        );
+                        contents = await Get.dataSet(sessionNode.getSession(), `${toDataSetName}(${toMemberName})`);
                     } catch (err) {
                         error = err;
                     }

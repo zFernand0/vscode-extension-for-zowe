@@ -7,7 +7,7 @@
  *                                                                                 *
  * Copyright Contributors to the Zowe Project.                                     *
  *                                                                                 *
-*/
+ */
 
 import * as vscode from "vscode";
 import * as path from "path";
@@ -47,6 +47,7 @@ import {
     IUrlValidator,
     ZoweVsCodeExtension,
 } from "@zowe/zowe-explorer-api";
+import { getImperativeConfig } from "@zowe/cli";
 
 import {
     errorHandling,

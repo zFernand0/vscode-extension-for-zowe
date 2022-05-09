@@ -9,26 +9,31 @@
  *                                                                                 *
  */
 
-import * as vscode from "vscode";
-import * as path from "path";
-import * as zowe from "@zowe/cli";
-import * as os from "os";
-import * as fs from "fs";
-import * as fsextra from "fs-extra";
-import * as imperative from "@zowe/imperative";
-import * as extension from "../../src/extension";
-import * as globals from "../../src/globals";
-import { ValidProfileEnum, ProfilesCache } from "@zowe/zowe-explorer-api";
-import { Profiles } from "../../src/Profiles";
-import { ZoweDatasetNode } from "../../src/dataset/ZoweDatasetNode";
-import { createInstanceOfProfileInfo, createIProfile, createTreeView } from "../../__mocks__/mockCreators/shared";
-import { PersistentFilters } from "../../src/PersistentFilters";
-
 jest.mock("vscode");
 jest.mock("fs");
 jest.mock("fs-extra");
 jest.mock("util");
 jest.mock("isbinaryfile");
+
+jest.mock("@zowe/core-for-zowe-sdk");
+jest.mock("@zowe/zos-console-for-zowe-sdk");
+
+import * as fs from "fs";
+import * as fsextra from "fs-extra";
+import * as os from "os";
+import * as path from "path";
+import * as vscode from "vscode";
+import * as zowe from "@zowe/cli";
+
+import * as imperative from "@zowe/imperative";
+
+import { activate } from "../../src/extension";
+import { COMMAND_COUNT, ISTHEIA } from "../../src/globals";
+import { ValidProfileEnum, ProfilesCache } from "@zowe/zowe-explorer-api";
+import { Profiles } from "../../src/Profiles";
+import { ZoweDatasetNode } from "../../src/dataset/ZoweDatasetNode";
+import { createInstanceOfProfileInfo, createIProfile, createTreeView } from "../../__mocks__/mockCreators/shared";
+import { PersistentFilters } from "../../src/PersistentFilters";
 
 async function createGlobalMocks() {
     const globalMocks = {
@@ -395,7 +400,7 @@ describe("Extension Unit Tests", () => {
             },
         });
 
-        await extension.activate(globalMocks.mockExtension);
+        await activate(globalMocks.mockExtension);
 
         // Check that tree providers are initialized successfully
         // tslint:disable-next-line: no-magic-numbers
@@ -411,7 +416,7 @@ describe("Extension Unit Tests", () => {
         });
 
         // Checking if commands are registered properly
-        expect(globalMocks.mockRegisterCommand.mock.calls.length).toBe(globals.COMMAND_COUNT);
+        expect(globalMocks.mockRegisterCommand.mock.calls.length).toBe(COMMAND_COUNT);
         globalMocks.mockRegisterCommand.mock.calls.forEach((call, i) => {
             expect(globalMocks.mockRegisterCommand.mock.calls[i][1]).toBeInstanceOf(Function);
         });
@@ -459,12 +464,12 @@ describe("Extension Unit Tests", () => {
             },
         });
 
-        await extension.activate(globalMocks.mockExtension);
+        await activate(globalMocks.mockExtension);
 
-        expect(globals.ISTHEIA).toEqual(true);
+        expect(ISTHEIA).toEqual(true);
         // tslint:disable-next-line: no-magic-numbers
         expect(globalMocks.mockMkdirSync.mock.calls.length).toBe(4);
-        expect(globalMocks.mockRegisterCommand.mock.calls.length).toBe(globals.COMMAND_COUNT);
+        expect(globalMocks.mockRegisterCommand.mock.calls.length).toBe(COMMAND_COUNT);
         globalMocks.mockRegisterCommand.mock.calls.forEach((call, i) => {
             expect(globalMocks.mockRegisterCommand.mock.calls[i][1]).toBeInstanceOf(Function);
         });

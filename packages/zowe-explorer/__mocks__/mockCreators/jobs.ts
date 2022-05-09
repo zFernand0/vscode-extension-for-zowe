@@ -65,12 +65,7 @@ export function createIJobFile(): IJobFile {
     };
 }
 
-export function createJobsTree(
-    session: Session,
-    iJob: IJob,
-    profile: IProfileLoaded,
-    treeView: any
-): any {
+export function createJobsTree(session: Session, iJob: IJob, profile: IProfileLoaded, treeView: any): any {
     const jobNode = new Job("jobtest", vscode.TreeItemCollapsibleState.Expanded, null, session, iJob, profile);
     jobNode.contextValue = globals.JOBS_SESSION_CONTEXT;
 

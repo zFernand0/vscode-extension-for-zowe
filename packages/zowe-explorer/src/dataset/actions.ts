@@ -1123,7 +1123,10 @@ export async function refreshDataset(
  * @returns {Promise<void>}
  */
 // This function does not appear to be called by anything except unit and integration tests.
-export async function enterPattern(node: api.IZoweDatasetTreeNode, datasetProvider: api.IZoweTree<api.IZoweDatasetTreeNode>) {
+export async function enterPattern(
+    node: api.IZoweDatasetTreeNode,
+    datasetProvider: api.IZoweTree<api.IZoweDatasetTreeNode>
+) {
     if (globals.LOG) {
         globals.LOG.debug(localize("enterPattern.log.debug.prompt", "Prompting the user for a data set pattern"));
     }

@@ -10,13 +10,13 @@
  */
 
 import * as spoolprovider from "../../src/SpoolProvider";
+import * as zowe from "@zowe/cli";
 import { IProfileLoaded } from "@zowe/imperative";
 import * as vscode from "vscode";
 import { Profiles } from "../../src/Profiles";
-import { IJobFile } from "@zowe/zos-jobs-for-zowe-sdk";
 
 describe("SpoolProvider Unit Tests", () => {
-    const iJobFile: IJobFile = {
+    const iJobFile: zowe.IJobFile = {
         "byte-count": 128,
         "job-correlator": "",
         "record-count": 1,
@@ -150,7 +150,7 @@ describe("SpoolProvider Unit Tests", () => {
         Object.defineProperty(GetJobs, "getSpoolContentById", { value: getSpoolContentById });
         getSpoolContentById.mockReturnValue("spool content");
 
-        const provider = new spoolprovider.default();
+        const provider = new spoolprovider.SpoolProvider();
         const content = await provider.provideTextDocumentContent(uriObj);
         expect(content).toBe("spool content");
         expect(getSpoolContentById.mock.calls.length).toEqual(1);
