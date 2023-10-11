@@ -46,7 +46,7 @@ module.exports = {
                 aliasTags: {
                     "latest": ["zowe-v2-lts"],
                 },
-                npmPublish: true,
+                npmPublish: false,
                 tarballDir: "dist",
             },
         ],
@@ -54,14 +54,14 @@ module.exports = {
             "@octorelease/vsce",
             {
                 $cwd: "packages/zowe-explorer",
-                ovsxPublish: true,
-                vscePublish: true,
+                ovsxPublish: false,
+                vscePublish: false,
                 vsixDir: "dist",
             },
             {
                 $cwd: "packages/zowe-explorer-ftp-extension",
-                ovsxPublish: true,
-                vscePublish: true,
+                ovsxPublish: false,
+                vscePublish: false,
                 vsixDir: "dist",
             },
         ],
