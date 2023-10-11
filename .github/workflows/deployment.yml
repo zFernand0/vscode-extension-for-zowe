@@ -48,7 +48,7 @@ jobs:
         run: echo "version=$(jq -r .version lerna.json)" >> $GITHUB_OUTPUT
 
       - uses: zowe-actions/octorelease@add-pnpm-support
-        # This is a test 001
+        # This is a test 002
         id: octorelease
         if: ${{ !contains(github.event.inputs.version || steps.lerna.outputs.version, '-SNAPSHOT') }}
         env:
