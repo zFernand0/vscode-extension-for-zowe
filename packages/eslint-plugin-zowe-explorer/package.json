@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-zowe-explorer",
-  "version": "3.0.0-next.202310131345",
+  "version": "3.0.0-next.202310131418",
   "description": "Custom ESLint Rules for ZOWE Explorer",
   "keywords": [
     "eslint",
